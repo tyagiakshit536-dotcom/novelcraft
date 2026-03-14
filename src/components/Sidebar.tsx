@@ -45,12 +45,12 @@ export default function Sidebar() {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+        className="sidebar-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
         onClick={() => setSidebarOpen(false)}
       />
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-[280px] z-50 animate-slide-left flex flex-col" style={{
+      <aside className="sidebar open fixed left-0 top-0 bottom-0 w-[280px] z-50 animate-slide-left flex flex-col" style={{
         background: 'rgba(20, 20, 20, 0.92)',
         backdropFilter: 'blur(32px)',
         WebkitBackdropFilter: 'blur(32px)',

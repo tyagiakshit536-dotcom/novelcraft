@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, ChevronDown, PenTool, Library, Bookmark, Trophy, BarChart3, Users, Info, Compass, CheckCheck, Clock3 } from 'lucide-react';
+import { Search, Bell, ChevronDown, PenTool, Library, Bookmark, Trophy, BarChart3, Users, Info, Compass, CheckCheck, Clock3, Menu, X } from 'lucide-react';
 import { useStore } from '../store';
 import NovelCraftLogo from './NovelCraftLogo';
 import { t } from '../lib/i18n';
@@ -63,16 +63,20 @@ export default function TopNav() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showProfile, showNotifications]);
 
+  useEffect(() => {
+    setShowMobileNav(false);
+  }, [location.pathname]);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 transition-all duration-300" style={{
+    <header className="navbar fixed top-0 left-0 right-0 z-30 transition-all duration-300" style={{
       background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 60%, transparent 100%)',
     }}>
       <div className="flex items-center h-16 px-4 lg:px-12 gap-6">
         {/* Logo */}
-        <NovelCraftLogo size="small" onClick={() => navigate('/home')} />
+        <NovelCraftLogo size="small" onClick={() => navigate('/home')} className="logo" />
 
         {/* Desktop Nav Links */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="nav-links hidden md:flex items-center gap-1">
           {navLinks.map(link => (
             <button
               key={link.path}
@@ -88,31 +92,6 @@ export default function TopNav() {
           ))}
         </nav>
 
-        {/* Mobile Browse Dropdown */}
-        <div className="md:hidden relative">
-          <button
-            onClick={() => setShowMobileNav(!showMobileNav)}
-            className="flex items-center gap-1 text-sm font-medium text-white"
-          >
-            Browse <ChevronDown size={14} className={`transition-transform ${showMobileNav ? 'rotate-180' : ''}`} />
-          </button>
-          {showMobileNav && (
-            <div className="absolute top-8 left-0 bg-black/95 border border-white/10 rounded py-2 min-w-[180px] z-50 animate-fade-in">
-              {navLinks.map(link => (
-                <button
-                  key={link.path}
-                  onClick={() => { navigate(link.path); setShowMobileNav(false); }}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors ${
-                    location.pathname === link.path ? 'text-white font-bold' : 'text-gray-300'
-                  }`}
-                >
-                  {link.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
         <div className="flex-1" />
 
         {/* Right Actions */}
@@ -124,21 +103,31 @@ export default function TopNav() {
             <Search size={20} />
           </button>
 
-          <button
-            onClick={() => navigate('/editor')}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded text-sm font-semibold hover:bg-accent-hover transition-colors"
-          >
-            <PenTool size={14} /> Write
-          </button>
+          <div className="nav-desktop-buttons hidden sm:flex items-center gap-3">
+            <button
+              onClick={() => navigate('/editor')}
+              className="items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded text-sm font-semibold hover:bg-accent-hover transition-colors inline-flex"
+            >
+              <PenTool size={14} /> Write
+            </button>
+
+            <button
+              onClick={() => navigate('/read-later')}
+              className="items-center gap-1.5 px-3 py-1.5 bg-bg-secondary border border-divider text-text-primary rounded text-sm font-semibold hover:border-accent/60 transition-colors inline-flex"
+            >
+              <Clock3 size={14} /> Read Later
+            </button>
+          </div>
 
           <button
-            onClick={() => navigate('/read-later')}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-bg-secondary border border-divider text-text-primary rounded text-sm font-semibold hover:border-accent/60 transition-colors"
+            onClick={() => setShowMobileNav(true)}
+            className="hamburger-btn hidden items-center justify-center w-10 h-10 rounded-lg border border-white/10 text-white hover:bg-white/10 transition-colors"
+            aria-label="Open menu"
           >
-            <Clock3 size={14} /> Read Later
+            <Menu size={24} />
           </button>
 
-          <div className="relative" ref={notificationRef}>
+          <div className="nav-mobile-hide relative" ref={notificationRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
               className="text-gray-300 hover:text-white transition-colors p-1 relative"
@@ -204,7 +193,7 @@ export default function TopNav() {
           </div>
 
           {/* Profile Dropdown */}
-          <div className="relative" ref={profileRef}>
+          <div className="nav-mobile-hide relative" ref={profileRef}>
             <button
               onClick={() => setShowProfile(!showProfile)}
               className="flex items-center gap-2 group cursor-pointer"
@@ -242,6 +231,52 @@ export default function TopNav() {
           </div>
         </div>
       </div>
+
+      {showMobileNav && (
+        <div className="mobile-menu fixed inset-0 z-[60] bg-[rgba(14,14,26,0.98)] backdrop-blur-2xl animate-slide-down" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+            <NovelCraftLogo size="small" onClick={() => { navigate('/home'); setShowMobileNav(false); }} className="logo" />
+            <button
+              onClick={() => setShowMobileNav(false)}
+              className="w-10 h-10 rounded-lg border border-white/10 text-white hover:bg-white/10 transition-colors flex items-center justify-center"
+              aria-label="Close menu"
+            >
+              <X size={22} />
+            </button>
+          </div>
+
+          <div className="h-[calc(100%-72px)] overflow-y-auto flex flex-col">
+            <nav className="flex-1 pt-2">
+              {navLinks.map(link => (
+                <button
+                  key={link.path}
+                  onClick={() => { navigate(link.path); setShowMobileNav(false); }}
+                  className={`w-full text-left px-6 py-4 text-lg border-b border-white/10 transition-colors ${
+                    location.pathname === link.path ? 'text-white font-semibold bg-white/5' : 'text-gray-200 hover:bg-white/5'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              ))}
+            </nav>
+
+            <div className="p-4 space-y-3 border-t border-white/10">
+              <button
+                onClick={() => { navigate('/editor'); setShowMobileNav(false); }}
+                className="w-full py-3 rounded-xl bg-accent text-white font-semibold"
+              >
+                Write
+              </button>
+              <button
+                onClick={() => { navigate('/read-later'); setShowMobileNav(false); }}
+                className="w-full py-3 rounded-xl border border-white/15 bg-white/5 text-white font-semibold"
+              >
+                Read Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

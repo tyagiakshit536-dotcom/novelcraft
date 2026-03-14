@@ -51,6 +51,8 @@ export default function EditorPage() {
   const [coverUrl, setCoverUrl] = useState('');
   const [showAI, setShowAI] = useState(false);
   const [showTranslate, setShowTranslate] = useState(false);
+  const [showMobileChapters, setShowMobileChapters] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
   const [imageUploadError, setImageUploadError] = useState('');
   const [coverUploadError, setCoverUploadError] = useState('');
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -147,6 +149,18 @@ export default function EditorPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showSaved]);
+
+  useEffect(() => {
+    const onResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobileView(mobile);
+      if (!mobile) {
+        setShowMobileChapters(false);
+      }
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   // No novel state
   if (!novel) {
@@ -314,16 +328,23 @@ export default function EditorPage() {
     <div className={`h-screen flex flex-col bg-bg-primary overflow-hidden ${focusMode ? 'focus-mode' : ''}`}>
       {/* Top Toolbar */}
       {!focusMode && (
-        <div className="h-12 bg-bg-secondary/50 border-b border-divider flex items-center px-2 gap-1 shrink-0">
+        <div className="editor-toolbar h-12 bg-bg-secondary/50 border-b border-divider flex items-center px-2 gap-1 shrink-0">
           {/* Back */}
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors">
+          <button onClick={() => navigate(-1)} className="toolbar-btn w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors">
             <ArrowLeft size={18} />
+          </button>
+
+          <button
+            onClick={() => setShowMobileChapters(true)}
+            className="toolbar-btn md:hidden px-3 h-9 rounded-lg border border-white/10 text-white inline-flex items-center gap-1"
+          >
+            <BookOpen size={15} /> Chapters
           </button>
 
           <div className="w-px h-6 bg-divider mx-1" />
 
           {/* Toggle Panels */}
-          <button onClick={() => store.setEditorSidebarOpen(!store.editorSidebarOpen)} className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${store.editorSidebarOpen ? 'bg-accent/15 text-accent' : 'hover:bg-bg-tertiary text-text-secondary hover:text-text-primary'}`}>
+          <button onClick={() => store.setEditorSidebarOpen(!store.editorSidebarOpen)} className={`toolbar-btn w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${store.editorSidebarOpen ? 'bg-accent/15 text-accent' : 'hover:bg-bg-tertiary text-text-secondary hover:text-text-primary'}`}>
             <PanelLeft size={18} />
           </button>
           <button onClick={handleAddImage} className="w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors" title="Add Image">
@@ -437,10 +458,10 @@ export default function EditorPage() {
       )}
 
       {/* Main Layout */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="editor-layout flex-1 flex overflow-hidden">
         {/* Left Panel — File Tree */}
         {store.editorSidebarOpen && !focusMode && (
-          <div className="w-60 bg-bg-secondary/30 border-r border-divider flex flex-col shrink-0 overflow-y-auto">
+          <div className="editor-left-panel w-60 bg-bg-secondary/30 border-r border-divider flex flex-col shrink-0 overflow-y-auto">
             <div className="p-3 border-b border-divider">
               <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Novel Structure</h3>
             </div>
@@ -507,9 +528,9 @@ export default function EditorPage() {
 
         {/* Center — Writing Canvas */}
         <div className="flex-1 overflow-y-auto relative" onClick={() => { setContextMenu(null); if (focusMode) setFocusMode(false); }}>
-          <div className={`max-w-[720px] mx-auto px-8 py-12 min-h-full ${previewMode ? 'font-reader' : ''}`}>
+          <div className={`writing-canvas max-w-[720px] mx-auto px-8 py-12 min-h-full ${previewMode ? 'font-reader' : ''}`}>
             {activeChapter && (
-              <h1 className="font-display text-2xl font-bold text-accent mb-8 border-b border-divider/50 pb-4">
+              <h1 className="font-display text-2xl md:text-2xl text-[22px] font-bold text-accent mb-8 border-b border-divider/50 pb-4">
                 {activeChapter.title}
               </h1>
             )}
@@ -519,7 +540,7 @@ export default function EditorPage() {
 
         {/* Right Panel — Character Bible / World Notes */}
         {store.editorRightPanelOpen && !focusMode && (
-          <div className="w-64 bg-bg-secondary/30 border-l border-divider flex flex-col shrink-0">
+          <div className="editor-right-panel w-64 bg-bg-secondary/30 border-l border-divider flex flex-col shrink-0">
             <div className="flex border-b border-divider">
               {(['characters', 'world', 'notes', 'images'] as const).map(tab => (
                 <button
@@ -561,7 +582,7 @@ export default function EditorPage() {
 
       {/* Status Bar */}
       {!focusMode && (
-        <div className="h-7 bg-bg-secondary/50 border-t border-divider flex items-center px-4 text-xs text-text-secondary gap-4 shrink-0">
+        <div className="hidden md:flex h-7 bg-bg-secondary/50 border-t border-divider items-center px-4 text-xs text-text-secondary gap-4 shrink-0">
           <span>{novel.title}</span>
           <span className="text-text-secondary/40">|</span>
           <span>{activeChapter?.title || 'No chapter'}</span>
@@ -569,6 +590,54 @@ export default function EditorPage() {
           <span>{wordCount.toLocaleString()} words</span>
           <span>{charCount.toLocaleString()} chars</span>
           <span>~{readTime} min read</span>
+        </div>
+      )}
+
+      {!focusMode && (
+        <div className="mobile-bottom-bar md:hidden">
+          <span className="text-xs text-text-secondary">{wordCount.toLocaleString()} words</span>
+          <span className="mx-2 text-text-secondary/40">|</span>
+          <span className="text-xs text-text-secondary">{savedIndicator ? 'Saved' : 'Editing'}</span>
+          <div className="flex-1" />
+          <button onClick={() => showSaved()} className="px-3 py-1 rounded-lg border border-white/10 text-xs text-white">
+            Save
+          </button>
+          <button onClick={() => setShowPublishModal(true)} className="ml-2 px-3 py-1 rounded-lg bg-accent text-white text-xs font-semibold">
+            Publish
+          </button>
+        </div>
+      )}
+
+      {isMobileView && showMobileChapters && (
+        <div className="modal-overlay fixed inset-0 z-[65] flex items-end justify-center bg-black/60" onClick={() => setShowMobileChapters(false)}>
+          <div className="modal-card w-full bg-bg-secondary border-t border-divider rounded-t-3xl p-4 max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-handle" />
+            <div className="flex items-center justify-between mb-3 mt-2">
+              <h3 className="text-sm font-semibold text-text-primary">Chapters</h3>
+              <button onClick={() => setShowMobileChapters(false)} className="px-2 py-1 text-xs text-text-secondary">Close</button>
+            </div>
+            <div className="space-y-3">
+              {novel.volumes.map((volume) => (
+                <div key={volume.id} className="glass-card p-3">
+                  <p className="text-xs text-accent font-semibold mb-2">{volume.title}</p>
+                  <div className="space-y-1">
+                    {volume.chapters.map((chapter) => (
+                      <button
+                        key={chapter.id}
+                        onClick={() => {
+                          store.setActiveChapter(novel.id, chapter.id);
+                          setShowMobileChapters(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm ${store.activeChapterId === chapter.id ? 'bg-accent/15 text-accent' : 'text-text-secondary hover:bg-bg-tertiary/60'}`}
+                      >
+                        {chapter.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -593,8 +662,9 @@ export default function EditorPage() {
 
       {/* Image Modal */}
       {showImageModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowImageModal(false)}>
-          <div className="glass-card p-6 w-full max-w-md animate-scale-in" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowImageModal(false)}>
+          <div className="modal-card glass-card p-6 w-full max-w-md animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="modal-handle hidden" />
             <h3 className="font-display text-lg font-bold mb-4">Insert Image</h3>
             <input
               ref={imageFileInputRef}
@@ -628,8 +698,9 @@ export default function EditorPage() {
 
       {/* Cover Image Modal */}
       {showCoverModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowCoverModal(false)}>
-          <div className="glass-card p-6 w-full max-w-md animate-scale-in" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowCoverModal(false)}>
+          <div className="modal-card glass-card p-6 w-full max-w-md animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="modal-handle hidden" />
             <h3 className="font-display text-lg font-bold mb-4">Set Cover Image</h3>
             <input
               ref={coverFileInputRef}
@@ -936,8 +1007,9 @@ function PublishModal({ novel, onClose }: { novel: Novel; onClose: () => void })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="glass-card p-8 max-w-lg w-full animate-scale-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="modal-card glass-card p-8 max-w-lg w-full animate-scale-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="modal-handle hidden" />
         <h2 className="font-display text-2xl font-bold mb-6">
           {step === 1 ? 'Publish Your Novel' : step === 2 ? 'Visibility' : 'Preview'}
         </h2>

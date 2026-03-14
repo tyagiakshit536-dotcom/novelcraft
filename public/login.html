@@ -516,6 +516,48 @@
     /* ============================================
        RESPONSIVE
        ============================================ */
+    @media (max-width: 768px) {
+        .orb-stage {
+            display: none;
+        }
+
+        .login-float {
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            padding: 1.5rem;
+            justify-content: center;
+            background: rgba(26, 14, 14, 0.62);
+            backdrop-filter: blur(18px);
+            border-radius: 20px;
+            margin: auto;
+            height: auto;
+            min-height: calc(100vh - 32px);
+        }
+
+        .lf-welcome {
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        .input-group input {
+            height: 48px;
+            padding-top: 0.8rem;
+            padding-bottom: 0.8rem;
+            font-size: 16px;
+        }
+
+        .btn-submit {
+            height: 48px;
+            width: 100%;
+        }
+
+        .back-home {
+            margin-top: 1rem;
+        }
+    }
+
     @media (max-width: 520px) {
         .login-float {
             width: 100%;

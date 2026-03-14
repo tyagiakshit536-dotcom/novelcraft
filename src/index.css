@@ -356,3 +356,485 @@ body.desktop-like-mode {
   opacity: 0.7;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+img, video, canvas, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+@keyframes slideDownMobileMenu {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDownMobileMenu 300ms ease;
+}
+
+.modal-handle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+
+  h1 { font-size: clamp(24px, 6vw, 48px); }
+  h2 { font-size: clamp(20px, 5vw, 36px); }
+  h3 { font-size: clamp(16px, 4vw, 24px); }
+  p { font-size: clamp(13px, 3.5vw, 16px); }
+
+  .navbar {
+    padding: 0 16px;
+    height: 56px;
+  }
+
+  .nav-links,
+  .nav-desktop-buttons {
+    display: none !important;
+  }
+
+  .nav-mobile-hide {
+    display: none !important;
+  }
+
+  .hamburger-btn {
+    display: inline-flex !important;
+  }
+
+  .mobile-menu {
+    display: block;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 85%;
+    max-width: 320px;
+    transform: translateX(-100%);
+    transition: transform 300ms ease;
+    z-index: 999;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar nav button {
+    padding: 14px 20px;
+    font-size: 16px;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 998;
+  }
+
+  .horizontal-scroll {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .horizontal-scroll > * {
+    scroll-snap-align: start;
+  }
+
+  .hero-carousel {
+    height: 260px !important;
+    min-height: 260px !important;
+  }
+
+  .section-heading {
+    font-size: 18px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .shelf-container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .novel-card {
+    width: 140px !important;
+    min-width: 140px !important;
+    height: 210px !important;
+  }
+
+  .stats-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .editor-layout {
+    flex-direction: column;
+  }
+
+  .editor-left-panel,
+  .editor-right-panel {
+    display: none !important;
+  }
+
+  .writing-canvas {
+    width: 100% !important;
+    padding: 16px !important;
+    margin-bottom: 56px;
+  }
+
+  .editor-toolbar {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 8px 12px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .toolbar-btn {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+
+  .mobile-bottom-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    align-items: center;
+    padding: 0 16px;
+    background: rgba(14, 14, 26, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    z-index: 100;
+  }
+
+  .reader-canvas {
+    padding: 16px !important;
+    font-size: 16px !important;
+    line-height: 1.9 !important;
+  }
+
+  .reader-nav-buttons {
+    position: fixed;
+    bottom: 16px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 40;
+  }
+
+  .reader-nav-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    backdrop-filter: blur(12px);
+  }
+
+  .library-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+
+  .new-novel-fab {
+    display: flex !important;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+
+  .filter-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 0 16px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .novel-banner {
+    height: 300px !important;
+  }
+
+  .novel-title {
+    font-size: 24px !important;
+  }
+
+  .novel-actions {
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .novel-action-btn {
+    width: 100%;
+  }
+
+  .novel-stats-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .chapter-list {
+    padding: 0 16px;
+  }
+
+  .auth-layout {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    min-height: 100vh;
+  }
+
+  .auth-3d-model {
+    display: none !important;
+  }
+
+  .auth-form-side {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .auth-input {
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .auth-submit-btn {
+    height: 48px;
+    width: 100%;
+  }
+
+  .settings-layout {
+    padding: 16px !important;
+    max-width: 100%;
+  }
+
+  .settings-section {
+    margin-bottom: 32px;
+  }
+
+  .settings-input {
+    height: 44px;
+  }
+
+  .toggle-switch,
+  button[aria-label="Toggle Theme"] {
+    transform: scale(1.2);
+    transform-origin: right center;
+  }
+
+  .settings-btn {
+    width: 100%;
+  }
+
+  .about-hero {
+    padding: 60px 16px 32px;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    padding: 0 16px;
+  }
+
+  .about-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .team-avatar {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .community-grid {
+    grid-template-columns: 1fr !important;
+    padding: 0 16px;
+  }
+
+  .leaderboard-row {
+    grid-template-columns: 40px 40px 1fr 80px !important;
+  }
+
+  .community-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .search-overlay {
+    padding: 16px !important;
+  }
+
+  .search-input {
+    width: 100%;
+    height: 48px;
+    font-size: 16px;
+    position: sticky;
+    top: 16px;
+    z-index: 4;
+  }
+
+  .search-filters {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 8px;
+  }
+
+  .search-result-card {
+    width: 100%;
+  }
+
+  .modal-overlay {
+    align-items: flex-end !important;
+  }
+
+  .modal-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .modal-handle {
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+
+  .modal-handle.hidden {
+    display: block !important;
+  }
+
+  .glass-card {
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  button,
+  .btn,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .overflow-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (hover: none) {
+  .glass-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .library-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .hero-section {
+    padding: 60px 32px;
+  }
+
+  .team-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .novel-card {
+    min-width: 150px !important;
+    height: 220px !important;
+  }
+
+  .sidebar {
+    width: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+.navbar {
+  padding-top: env(safe-area-inset-top);
+}
+
+.mobile-bottom-bar {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.horizontal-scroll,
+.overflow-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontal-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
