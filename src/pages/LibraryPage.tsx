@@ -16,6 +16,7 @@ export default function LibraryPage() {
   const [contextMenu, setContextMenu] = useState<string | null>(null);
   const [showNewNovelModal, setShowNewNovelModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [deleteCandidate, setDeleteCandidate] = useState<Novel | null>(null);
 
   // Close context menu on click outside
   useEffect(() => {
@@ -59,9 +60,7 @@ export default function LibraryPage() {
         updateNovel(novel.id, { status: 'archived' });
         break;
       case 'delete':
-        if (confirm('Are you sure you want to delete this novel? This cannot be undone.')) {
-          deleteNovel(novel.id);
-        }
+        setDeleteCandidate(novel);
         break;
     }
   };
@@ -175,7 +174,7 @@ export default function LibraryPage() {
               {/* Context Menu Button */}
               <button
                 onClick={(e) => { e.stopPropagation(); setContextMenu(contextMenu === novel.id ? null : novel.id); }}
-                className={`absolute top-2 left-2 z-20 w-8 h-8 rounded-lg bg-black/40 backdrop-blur flex items-center justify-center text-white transition-all cursor-pointer ${contextMenu === novel.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                className={`absolute top-2 left-2 z-20 w-8 h-8 rounded-lg bg-black/40 backdrop-blur flex items-center justify-center text-white transition-all cursor-pointer ${contextMenu === novel.id ? 'opacity-100' : 'opacity-100 lg:opacity-0 lg:group-hover:opacity-100'}`}
               >
                 <MoreVertical size={16} />
               </button>
@@ -203,41 +202,65 @@ export default function LibraryPage() {
       ) : (
         <div className="space-y-2">
           {filtered.map(novel => (
-            <button
-              key={novel.id}
-              onClick={() => navigate(`/novel/${novel.id}`)}
-              onDoubleClick={() => navigate('/editor', { state: { novelId: novel.id } })}
-              className="w-full flex items-center gap-4 p-4 glass-card glass-card-hover text-left"
-            >
-              <div className="w-16 h-24 rounded-xl overflow-hidden bg-bg-tertiary shrink-0">
-                {novel.coverImageUrl ? (
-                  <img src={novel.coverImageUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-accent/30 to-coral/20" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold truncate">{novel.title}</p>
-                <p className="text-text-secondary text-sm">{novel.volumes.length} vol · {novel.volumes.reduce((s, v) => s + v.chapters.length, 0)} ch · {novel.totalWords.toLocaleString()} words</p>
-                <div className="flex items-center gap-3 mt-2">
-                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
-                    upcomingNovelIds.includes(novel.id)
-                      ? 'bg-gold/20 text-gold border border-gold/40'
-                      : novel.status === 'published'
-                        ? 'bg-success/20 text-success'
-                        : 'bg-warning/20 text-warning'
-                  }`}>
-                    {upcomingNovelIds.includes(novel.id) ? 'upcoming' : novel.status}
-                  </span>
-                  {novel.status === 'published' && (
-                    <>
-                      <span className="text-xs text-text-secondary flex items-center gap-1"><Eye size={12} /> {novel.totalReads}</span>
-                      <span className="text-xs text-text-secondary flex items-center gap-1"><Star size={12} className="text-gold" /> {novel.ratingAvg}</span>
-                    </>
+            <div key={novel.id} className="group relative">
+              <button
+                onClick={() => navigate(`/novel/${novel.id}`)}
+                onDoubleClick={() => navigate('/editor', { state: { novelId: novel.id } })}
+                className="w-full flex items-center gap-4 p-4 pr-14 glass-card glass-card-hover text-left"
+              >
+                <div className="w-16 h-24 rounded-xl overflow-hidden bg-bg-tertiary shrink-0">
+                  {novel.coverImageUrl ? (
+                    <img src={novel.coverImageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-accent/30 to-coral/20" />
                   )}
                 </div>
-              </div>
-            </button>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold truncate">{novel.title}</p>
+                  <p className="text-text-secondary text-sm">{novel.volumes.length} vol · {novel.volumes.reduce((s, v) => s + v.chapters.length, 0)} ch · {novel.totalWords.toLocaleString()} words</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                      upcomingNovelIds.includes(novel.id)
+                        ? 'bg-gold/20 text-gold border border-gold/40'
+                        : novel.status === 'published'
+                          ? 'bg-success/20 text-success'
+                          : 'bg-warning/20 text-warning'
+                    }`}>
+                      {upcomingNovelIds.includes(novel.id) ? 'upcoming' : novel.status}
+                    </span>
+                    {novel.status === 'published' && (
+                      <>
+                        <span className="text-xs text-text-secondary flex items-center gap-1"><Eye size={12} /> {novel.totalReads}</span>
+                        <span className="text-xs text-text-secondary flex items-center gap-1"><Star size={12} className="text-gold" /> {novel.ratingAvg}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setContextMenu(contextMenu === novel.id ? null : novel.id); }}
+                className={`absolute top-3 right-3 z-20 w-8 h-8 rounded-lg bg-black/40 backdrop-blur flex items-center justify-center text-white transition-all cursor-pointer ${contextMenu === novel.id ? 'opacity-100' : 'opacity-100 lg:opacity-0 lg:group-hover:opacity-100'}`}
+              >
+                <MoreVertical size={16} />
+              </button>
+              {contextMenu === novel.id && (
+                <div ref={contextMenuRef} className="absolute top-12 right-3 z-50 glass-card p-1.5 min-w-[160px] animate-scale-in shadow-xl shadow-black/50" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => handleContextAction(novel, 'edit')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors">
+                    <Edit3 size={14} /> Edit
+                  </button>
+                  <button onClick={() => handleContextAction(novel, 'unpublish')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors">
+                    <Share size={14} /> {novel.status === 'published' ? 'Unpublish' : 'Publish'}
+                  </button>
+                  <button onClick={() => handleContextAction(novel, 'archive')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors">
+                    <Archive size={14} /> Archive
+                  </button>
+                  <hr className="border-divider my-1" />
+                  <button onClick={() => handleContextAction(novel, 'delete')} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-error hover:bg-error/10 rounded-lg transition-colors">
+                    <Trash2 size={14} /> Delete
+                  </button>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -262,6 +285,32 @@ export default function LibraryPage() {
               </button>
               <button onClick={handleCreateNovel} className="px-6 py-2.5 btn btn-primary rounded-xl font-semibold">
                 Create Novel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setDeleteCandidate(null)}>
+          <div className="glass-card p-5 sm:p-6 max-w-md w-full animate-scale-in" onClick={(e) => e.stopPropagation()}>
+            <h2 className="font-display text-xl font-bold mb-2">Delete Novel</h2>
+            <p className="text-text-secondary mb-6">
+              Are you sure you want to delete "{deleteCandidate.title}"? This cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setDeleteCandidate(null)} className="px-5 py-2.5 text-text-secondary hover:text-text-primary transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteNovel(deleteCandidate.id);
+                  setDeleteCandidate(null);
+                }}
+                className="px-6 py-2.5 rounded-xl font-semibold bg-error text-white hover:opacity-90 transition-opacity"
+              >
+                Delete
               </button>
             </div>
           </div>

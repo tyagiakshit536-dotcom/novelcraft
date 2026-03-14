@@ -58,8 +58,10 @@ export default function EditorPage() {
   const coverFileInputRef = useRef<HTMLInputElement | null>(null);
   const music = useBackgroundMusic();
 
-  // Resolve which novel to edit
-  const activeNovelId = locationNovelId || store.activeNovelId;
+  // Resolve which novel to edit. If a temporary route ID was replaced in store,
+  // fall back to the store's active novel ID.
+  const locationNovelExists = !!locationNovelId && store.userNovels.some(n => n.id === locationNovelId);
+  const activeNovelId = locationNovelExists ? locationNovelId : store.activeNovelId;
   const novel = store.userNovels.find(n => n.id === activeNovelId);
 
   // If no novel and navigated here, create one

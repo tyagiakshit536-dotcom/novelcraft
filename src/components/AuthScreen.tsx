@@ -70,13 +70,20 @@ export default function AuthScreen() {
         setLoading(true);
         setError('');
         try {
-          const { error } = await supabase.auth.signInWithOAuth({
+          const { data, error } = await supabase.auth.signInWithOAuth({
             provider,
-            options: { redirectTo: `${window.location.origin}/auth` },
+            options: {
+              redirectTo: `${window.location.origin}/auth`,
+              skipBrowserRedirect: true,
+            },
           });
           if (error) {
             throw error;
           }
+          if (!data?.url) {
+            throw new Error('Unable to start social login. Please try again.');
+          }
+          window.location.assign(data.url);
         } catch (err: unknown) {
           setError(err instanceof Error ? err.message : 'Social login failed. Please try again.');
         } finally {

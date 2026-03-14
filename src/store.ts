@@ -389,7 +389,23 @@ export const useStore = create<AppState>()(
           const filteredSamples = sampleNovels.filter(s => !dbNovelIds.has(s.id));
           const discoveryNovels = [...publishedNovels.filter(n => !userNovelIds.has(n.id)), ...filteredSamples];
 
-          set({ userNovels, novels: discoveryNovels, readingProgress, readingList, reviews, comments, characters, worldEntries, notifications });
+          // Keep local optimistic novels so they don't disappear while backend consistency catches up.
+          set((s) => {
+            const serverIds = new Set(userNovels.map(n => n.id));
+            const optimisticLocal = s.userNovels.filter(n => n.id.startsWith('temp-') && !serverIds.has(n.id));
+            const mergedUserNovels = [...userNovels, ...optimisticLocal];
+            return {
+              userNovels: mergedUserNovels,
+              novels: discoveryNovels,
+              readingProgress,
+              readingList,
+              reviews,
+              comments,
+              characters,
+              worldEntries,
+              notifications,
+            };
+          });
         } catch (e) {
           console.error('Failed to load user data:', e);
         }
@@ -563,6 +579,8 @@ export const useStore = create<AppState>()(
                 : realNovel;
 
               const realChapterId = realNovel.volumes[0]?.chapters[0]?.id;
+              const hasTempNovel = s.userNovels.some(n => n.id === id);
+              const hasActiveNovel = !!s.activeNovelId && s.userNovels.some(n => n.id === s.activeNovelId);
 
               const remapNovelId = (novelId: string) => (novelId === id ? realNovel.id : novelId);
               const nextNovelLikes = { ...s.novelLikes };
@@ -572,9 +590,11 @@ export const useStore = create<AppState>()(
               }
 
               return {
-                userNovels: s.userNovels.map(n => n.id === id ? mergedRealNovel : n),
-                activeNovelId: s.activeNovelId === id ? realNovel.id : s.activeNovelId,
-                activeChapterId: s.activeChapterId === chapterId ? (realChapterId || s.activeChapterId) : s.activeChapterId,
+                userNovels: hasTempNovel
+                  ? s.userNovels.map(n => n.id === id ? mergedRealNovel : n)
+                  : [mergedRealNovel, ...s.userNovels.filter(n => n.id !== realNovel.id)],
+                activeNovelId: (s.activeNovelId === id || !hasActiveNovel) ? realNovel.id : s.activeNovelId,
+                activeChapterId: (s.activeChapterId === chapterId || !s.activeChapterId) ? (realChapterId || s.activeChapterId) : s.activeChapterId,
                 upcomingNovelIds: s.upcomingNovelIds.map(remapNovelId),
                 readLaterNovelIds: s.readLaterNovelIds.map(remapNovelId),
                 likedNovelIds: s.likedNovelIds.map(remapNovelId),
