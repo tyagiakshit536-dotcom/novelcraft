@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovelCraft — Write Worlds. Share Stories.</title>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background-color: #1A0E0E;
+        color: #FFF0F0;
+        min-height: 100vh;
+        line-height: 1.5;
+        overflow-x: hidden;
+    }
+
+    /* ============================================
+       HERO SECTION (EXISTING)
+       ============================================ */
+    .image-gradient {
+        position: absolute;
+        top: 0;
+        right: 0%;
+        opacity: 0.5;
+        z-index: -1;
+    }
+
+    .layer-blur {
+        height: 0%;
+        width: 30rem;
+        position: absolute;
+        top: 20%;
+        right: 0;
+        box-shadow: 0 0 700px 15px rgba(226, 74, 74, 0.4);
+        rotate: -30deg;
+        z-index: -1;
+    }
+
+    .container {
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 2rem;
+        position: relative;
+    }
+
+    .site-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 5rem;
+        background: rgba(26, 14, 14, 0.9);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-bottom: 1px solid rgba(69, 42, 42, 0.5);
+        transition: background 0.3s ease;
+    }
+
+    .site-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        font-family: 'Playfair Display', serif;
+        color: #FFF0F0;
+        letter-spacing: 0.02em;
+    }
+
+    nav {
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+        margin-left: -5%;
+    }
+
+    nav a {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 500;
+        letter-spacing: 0.15rem;
+        transition: color 0.3s ease;
+        text-decoration: none;
+        color: #F0C4C4;
+        z-index: 999;
+    }
+
+    nav a:hover {
+        color: #FFFFFF;
+        text-shadow: 0 0 12px rgba(226, 74, 74, 0.4);
+    }
+
+    .btn-signing {
+        background-color: #E24A4A;
+        color: #FFF0F0;
+        padding: 0.75rem 2.2rem;
+        border-radius: 50px;
+        border: none;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        z-index: 999;
+        box-shadow: 0 4px 18px rgba(226, 74, 74, 0.3);
+    }
+
+    .btn-signing:hover {
+        background-color: #F06B6B;
+        box-shadow: 0 0 36px rgba(226, 74, 74, 0.5);
+        transform: translateY(-1px);
+    }
+
+    main {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: calc(90vh - 6rem);
+        padding-top: 5rem;
+    }
+
+    .content {
+        max-width: 40rem;
+        margin-left: 10%;
+        z-index: 999;
+    }
+
+    .tag-box {
+        position: relative;
+        width: 18rem;
+        height: 2.5rem;
+        border-radius: 50px;
+        background: linear-gradient(to right, #452A2A, #E24A4A, #FF6584, #E24A4A, #452A2A);
+        background-size: 200%;
+        animation: animationGradient 3s linear infinite;
+        box-shadow: 0 0 15px rgba(226, 74, 74, 0.3);
+    }
+
+    @keyframes animationGradient {
+        to {
+            background-position: 200%;
+        }
+    }
+
+    .tag-box .tag {
+        position: absolute;
+        inset: 2px;
+        background-color: #1A0E0E;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem;
+        letter-spacing: 0.2em;
+        color: #B09090;
+        transition: 0.5s ease;
+        cursor: pointer;
+    }
+
+    .tag-box .tag:hover {
+        color: #E24A4A;
+    }
+
+    .content h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 4rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        margin: 2rem 0;
+        line-height: 1.15;
+        text-shadow: 0 0 40px rgba(226, 74, 74, 0.15);
+    }
+
+    .description {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.15rem;
+        letter-spacing: 0.02em;
+        max-width: 35rem;
+        color: #B09090;
+        line-height: 1.7;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 3rem;
+    }
+
+    .btn-get-started {
+        text-decoration: none;
+        border: 1.5px solid #E24A4A;
+        color: #E24A4A;
+        padding: 0.8rem 1.8rem;
+        border-radius: 50px;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+    }
+
+    .btn-get-started:hover {
+        background-color: rgba(226, 74, 74, 0.1);
+        box-shadow: 0 0 25px rgba(226, 74, 74, 0.2);
+    }
+
+    .btn-signing-main {
+        text-decoration: none;
+        background-color: #E24A4A;
+        color: #FFF0F0;
+        padding: 0.8rem 2.5rem;
+        border-radius: 50px;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+    }
+
+    .btn-signing-main:hover {
+        background-color: #F06B6B;
+        box-shadow: 0 0 30px rgba(226, 74, 74, 0.4);
+    }
+
+    /* 3D Robot — Reveal Instances */
+    .robot-slot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .robot-slot .robot-inner {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        animation: robotFloat 6s ease-in-out infinite;
+        filter: drop-shadow(0 0 50px rgba(226, 74, 74, 0.3));
+    }
+
+    @keyframes robotFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-18px); }
+    }
+
+    /* Slight zoom keeps full model text visible while still hiding watermark */
+    .robot-slot spline-viewer {
+        display: block;
+        width: 116%;
+        height: 116%;
+        margin-top: -6%;
+        margin-left: -8%;
+    }
+
+    .robot-slot spline-viewer::part(logo) {
+        display: none !important;
+    }
+
+    /* Hero robot — positioned inside hero right side */
+    .robot-hero {
+        position: absolute;
+        top: 2rem;
+        right: -2%;
+        width: 800px;
+        height: 800px;
+        z-index: 2;
+    }
+
+    /* Section robots — inline reveal */
+    .robot-section {
+        width: 560px;
+        height: 560px;
+        margin: 0 auto;
+    }
+
+    /* Last robot — bigger */
+    .robot-section-large {
+        width: 700px;
+        height: 700px;
+        margin: 0 auto;
+    }
+
+    /* ============================================
+       SECTION 1 — THE CRAFT STATEMENT
+       ============================================ */
+    .craft-section {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 6rem 2rem;
+        overflow: hidden;
+    }
+
+    .craft-section .noise-bg {
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse at 20% 50%, rgba(226, 74, 74, 0.06) 0%, transparent 60%),
+            radial-gradient(ellipse at 80% 50%, rgba(255, 101, 132, 0.04) 0%, transparent 60%);
+        animation: noiseShift 12s ease-in-out infinite alternate;
+        z-index: 0;
+    }
+
+    @keyframes noiseShift {
+        0% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.05); }
+        100% { opacity: 0.6; transform: scale(1); }
+    }
+
+    .craft-section .craft-quote {
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        font-size: clamp(2.2rem, 5vw, 4.5rem);
+        font-weight: 700;
+        line-height: 1.25;
+        max-width: 800px;
+        color: #FFF0F0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .craft-section .craft-sub {
+        font-family: 'Inter', sans-serif;
+        font-size: clamp(1rem, 2vw, 1.4rem);
+        color: #B09090;
+        margin-top: 2rem;
+        letter-spacing: 0.05em;
+        position: relative;
+        z-index: 1;
+    }
+
+    .craft-section .craft-sub span {
+        color: #E24A4A;
+        font-weight: 600;
+    }
+
+    /* ============================================
+       SECTION 2 — ANIMATED STATS ROW
+       ============================================ */
+    .stats-section {
+        padding: 6rem 2rem;
+        background-color: #1A0E0E;
+        position: relative;
+    }
+
+    .stats-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #452A2A, #E24A4A, #452A2A, transparent);
+    }
+
+    .stats-grid {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        gap: 0;
+    }
+
+    .stat-item {
+        flex: 1;
+        text-align: center;
+        padding: 3rem 2rem;
+        position: relative;
+    }
+
+    .stat-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1px;
+        height: 60%;
+        background: linear-gradient(180deg, transparent, #E24A4A, transparent);
+    }
+
+    .stat-number {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2.5rem, 4vw, 3.8rem);
+        font-weight: 700;
+        color: #E2B04A;
+        line-height: 1;
+        margin-bottom: 0.8rem;
+    }
+
+    .stat-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        color: #B09090;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    /* ============================================
+       SECTION 3 — FEATURES SHOWCASE
+       ============================================ */
+    .features-section {
+        position: relative;
+    }
+
+    .feature-block {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        padding: 4rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        gap: 4rem;
+        position: sticky;
+        top: 0;
+    }
+
+    .feature-block-wrapper {
+        min-height: 80vh;
+        position: relative;
+        overflow: hidden;
+        border-bottom: 1px solid #452A2A;
+    }
+
+    .feature-block-wrapper:last-child {
+        border-bottom: none;
+    }
+
+    .feature-visual {
+        flex: 1.2;
+    }
+
+    .feature-mockup {
+        width: 100%;
+        border-radius: 16px;
+        background: #2A1616;
+        border: 1px solid #452A2A;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .mockup-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 18px;
+        background: #301A1A;
+        border-bottom: 1px solid #452A2A;
+    }
+
+    .mockup-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .mockup-dot.red { background: #FF6584; }
+    .mockup-dot.yellow { background: #E2B04A; }
+    .mockup-dot.green { background: #4AE29A; }
+
+    .mockup-body {
+        padding: 2rem;
+        min-height: 320px;
+    }
+
+    .mockup-editor {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .mockup-sidebar {
+        width: 180px;
+        flex-shrink: 0;
+    }
+
+    .mockup-sidebar-item {
+        padding: 8px 12px;
+        margin-bottom: 4px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        color: #B09090;
+        font-family: 'Inter', sans-serif;
+        cursor: default;
+    }
+
+    .mockup-sidebar-item.active {
+        background: rgba(226, 74, 74, 0.15);
+        color: #E24A4A;
+    }
+
+    .mockup-editor-area {
+        flex: 1;
+    }
+
+    .mockup-line {
+        height: 10px;
+        margin-bottom: 12px;
+        border-radius: 4px;
+        background: #452A2A;
+    }
+
+    .mockup-line.short { width: 40%; }
+    .mockup-line.medium { width: 70%; }
+    .mockup-line.long { width: 90%; }
+    .mockup-line.full { width: 100%; }
+    .mockup-line.accent { background: rgba(226, 74, 74, 0.2); }
+    .mockup-line.heading {
+        height: 16px;
+        width: 50%;
+        background: #5A3A3A;
+        margin-bottom: 20px;
+    }
+
+    /* Reader mode mockup */
+    .mockup-reader {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .mockup-reader .reader-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        color: #FFF0F0;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .mockup-reader .reader-author {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        color: #E24A4A;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .mockup-reader .reader-text {
+        font-family: 'Lora', serif;
+        font-size: 1rem;
+        color: #B09090;
+        line-height: 1.9;
+    }
+
+    /* Community mockup */
+    .mockup-community {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .community-card {
+        background: #381E1E;
+        border-radius: 10px;
+        padding: 16px;
+        border: 1px solid #452A2A;
+    }
+
+    .community-card-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        color: #FFF0F0;
+        margin-bottom: 6px;
+    }
+
+    .community-card-genre {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.7rem;
+        color: #E24A4A;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 8px;
+    }
+
+    .community-card-stats {
+        display: flex;
+        justify-content: space-between;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.75rem;
+        color: #B09090;
+    }
+
+    .feature-content {
+        flex: 1;
+    }
+
+    .feature-content h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 3.5vw, 3.2rem);
+        font-weight: 700;
+        margin-bottom: 2rem;
+        line-height: 1.15;
+    }
+
+    .feature-content h2 span {
+        color: #E24A4A;
+    }
+
+    .feature-bullets {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+
+    .feature-bullets li {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 1.05rem;
+        color: #B09090;
+        line-height: 1.6;
+    }
+
+    .feature-bullets li .bullet-icon {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgba(226, 74, 74, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #E24A4A;
+        font-size: 0.9rem;
+        margin-top: 2px;
+    }
+
+    .feature-block.reversed {
+        flex-direction: row-reverse;
+    }
+
+    /* ============================================
+       SECTION 4 — EDITORIAL QUOTE BAND
+       ============================================ */
+    .editorial-section {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 6rem 2rem;
+        background: #0a0a14;
+        position: relative;
+    }
+
+    .editorial-quote {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 4.5vw, 4rem);
+        font-weight: 700;
+        color: #FFF0F0;
+        max-width: 800px;
+        line-height: 1.3;
+        position: relative;
+        display: inline-block;
+    }
+
+    .editorial-quote .underline-accent {
+        display: block;
+        width: 120px;
+        height: 3px;
+        background: #E24A4A;
+        margin: 2rem auto 0;
+        border-radius: 2px;
+        box-shadow: 0 0 20px rgba(226, 74, 74, 0.5);
+    }
+
+    /* ============================================
+       SECTION 5 — HOW IT WORKS
+       ============================================ */
+    .how-section {
+        padding: 10rem 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .how-section .section-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #E24A4A;
+        margin-bottom: 4rem;
+        text-align: center;
+    }
+
+    .how-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 3rem;
+        padding: 3rem 0;
+        border-top: 1px solid #452A2A;
+    }
+
+    .how-step:last-child {
+        border-bottom: 1px solid #452A2A;
+    }
+
+    .step-number {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(3rem, 5vw, 5rem);
+        font-weight: 900;
+        color: #452A2A;
+        line-height: 1;
+        flex-shrink: 0;
+        width: 120px;
+        transition: color 0.6s ease;
+    }
+
+    .how-step.is-visible .step-number {
+        color: #E24A4A;
+    }
+
+    .step-content h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #FFF0F0;
+        margin-bottom: 0.6rem;
+    }
+
+    .step-content p {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        color: #B09090;
+        line-height: 1.6;
+    }
+
+    /* ============================================
+       SECTION 6 — TESTIMONIAL CAROUSEL
+       ============================================ */
+    .testimonials-section {
+        padding: 8rem 2rem;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .testimonials-section .section-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #E24A4A;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .testimonials-section h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 3vw, 2.8rem);
+        text-align: center;
+        margin-bottom: 4rem;
+        color: #FFF0F0;
+    }
+
+    .carousel-track {
+        display: flex;
+        gap: 2rem;
+        animation: carouselScroll 20s linear infinite;
+        width: max-content;
+    }
+
+    .carousel-track:hover {
+        animation-play-state: paused;
+    }
+
+    @keyframes carouselScroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    .testimonial-card {
+        width: 400px;
+        flex-shrink: 0;
+        background: rgba(22, 22, 42, 0.6);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(226, 74, 74, 0.15);
+        border-radius: 20px;
+        padding: 2.5rem;
+        transition: all 0.4s ease;
+    }
+
+    .testimonial-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 40px rgba(226, 74, 74, 0.15);
+        border-color: rgba(226, 74, 74, 0.3);
+    }
+
+    .testimonial-text {
+        font-family: 'Lora', serif;
+        font-style: italic;
+        font-size: 1.05rem;
+        color: #FFF0F0;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+    }
+
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .testimonial-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #E24A4A, #FF6584);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #FFF0F0;
+        flex-shrink: 0;
+    }
+
+    .testimonial-info .author-name {
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #FFF0F0;
+    }
+
+    .testimonial-info .author-genre {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem;
+        color: #E24A4A;
+        letter-spacing: 0.05em;
+    }
+
+    /* ============================================
+       SECTION 7 — FINAL CTA
+       ============================================ */
+    .cta-section {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 6rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section canvas#particleCanvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+
+    .cta-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .cta-content h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2.8rem, 5.5vw, 5rem);
+        font-weight: 900;
+        margin-bottom: 1.5rem;
+        line-height: 1.1;
+        background: linear-gradient(135deg, #FFF0F0, #E24A4A);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .cta-content .cta-sub {
+        font-family: 'Inter', sans-serif;
+        font-size: clamp(1rem, 1.8vw, 1.3rem);
+        color: #B09090;
+        margin-bottom: 3rem;
+        letter-spacing: 0.02em;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1.2rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .cta-btn-primary {
+        display: inline-block;
+        text-decoration: none;
+        background: #E24A4A;
+        color: #FFF0F0;
+        padding: 1rem 3rem;
+        border-radius: 50px;
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 30px rgba(226, 74, 74, 0.3);
+    }
+
+    .cta-btn-primary:hover {
+        background: #F06B6B;
+        box-shadow: 0 0 50px rgba(226, 74, 74, 0.5);
+        transform: translateY(-2px);
+    }
+
+    .cta-btn-outline {
+        display: inline-block;
+        text-decoration: none;
+        border: 1.5px solid #E24A4A;
+        color: #E24A4A;
+        padding: 1rem 3rem;
+        border-radius: 50px;
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        transition: all 0.3s ease;
+    }
+
+    .cta-btn-outline:hover {
+        background: rgba(226, 74, 74, 0.1);
+        box-shadow: 0 0 30px rgba(226, 74, 74, 0.2);
+        transform: translateY(-2px);
+    }
+
+    /* ============================================
+       SECTION 8 — FOOTER
+       ============================================ */
+    .site-footer {
+        padding: 5rem 2rem 2rem;
+        border-top: 1px solid #452A2A;
+        background: #0a0a14;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: 1.5fr repeat(4, 1fr);
+        gap: 3rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+        border-bottom: 1px solid #452A2A;
+    }
+
+    .footer-brand .footer-logo {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #FFF0F0;
+        margin-bottom: 1rem;
+    }
+
+    .footer-brand p {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        color: #B09090;
+        line-height: 1.6;
+        max-width: 260px;
+    }
+
+    .footer-col h4 {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #FFF0F0;
+        margin-bottom: 1.5rem;
+    }
+
+    .footer-col ul {
+        list-style: none;
+    }
+
+    .footer-col ul li {
+        margin-bottom: 0.8rem;
+    }
+
+    .footer-col ul li a {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        color: #B09090;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .footer-col ul li a:hover {
+        color: #E24A4A;
+    }
+
+    .footer-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 2rem auto 0;
+        padding-top: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .footer-bottom .copyright {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem;
+        color: #B09090;
+    }
+
+    .footer-bottom .made-with {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8rem;
+        color: #B09090;
+    }
+
+    .footer-bottom .made-with span {
+        color: #E24A4A;
+    }
+
+    .social-icons {
+        display: flex;
+        gap: 1.2rem;
+    }
+
+    .social-icons a {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid #452A2A;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #B09090;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .social-icons a:hover {
+        border-color: #E24A4A;
+        color: #E24A4A;
+        box-shadow: 0 0 15px rgba(226, 74, 74, 0.2);
+    }
+
+    /* ============================================
+       SCROLL REVEAL UTILITY
+       ============================================ */
+    .reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+
+    .reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 1300px) {
+        .site-header {
+            padding: 1rem 1.5rem;
+        }
+
+        .content {
+            margin-top: 85%;
+        }
+
+        .robot-hero {
+            width: 680px;
+            height: 680px;
+            right: 0;
+            top: 4rem;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .feature-block,
+        .feature-block.reversed {
+            flex-direction: column;
+            padding: 4rem 2rem;
+            gap: 3rem;
+        }
+
+        .robot-section {
+            width: 500px;
+            height: 500px;
+        }
+
+        .robot-section-large {
+            width: 600px;
+            height: 600px;
+        }
+
+        .stats-grid {
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            min-width: 50%;
+        }
+
+        .stat-item:nth-child(2)::after {
+            display: none;
+        }
+
+        .footer-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .site-header {
+            padding: 0.8rem 1rem;
+        }
+
+        .site-header nav {
+            display: none;
+        }
+
+        .site-header h1 {
+            font-size: 1.6rem;
+        }
+
+        .btn-signing {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.8rem;
+        }
+
+        .content {
+            margin-top: 25rem;
+            max-width: 30rem;
+            margin-left: 5%;
+        }
+
+        .robot-hero {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            right: auto;
+            top: auto;
+            margin: 0 auto 2rem;
+        }
+
+        .robot-slot spline-viewer {
+            width: 110%;
+            height: 110%;
+            margin-top: -4%;
+            margin-left: -5%;
+        }
+
+        .robot-section,
+        .robot-section-large {
+            width: 400px;
+            height: 400px;
+        }
+
+        .tag-box {
+            width: 12rem;
+        }
+
+        .content h1 {
+            font-size: 2.5rem;
+        }
+
+        .description {
+            font-size: 1rem;
+        }
+
+        .btn-get-started {
+            font-size: 0.8rem;
+            padding: 0.8rem 1.2rem;
+        }
+
+        .btn-signing-main {
+            font-size: 0.8rem;
+            padding: 0.8rem 2rem;
+        }
+
+        .stats-grid {
+            flex-direction: column;
+        }
+
+        .stat-item:not(:last-child)::after {
+            width: 60%;
+            height: 1px;
+            right: auto;
+            left: 50%;
+            top: auto;
+            bottom: 0;
+            transform: translateX(-50%);
+        }
+
+        .how-step {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .step-number {
+            width: auto;
+        }
+
+        .testimonial-card {
+            width: 320px;
+        }
+
+        .footer-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .footer-bottom {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+    </style>
+</head>
+<body>
+    <img class="image-gradient" src="gradient.png" alt="gradient">
+    <div class="layer-blur"></div>
+
+    <!-- ========================================
+         HERO SECTION (EXISTING)
+         ======================================== -->
+    <!-- REMOVED HTML HEADER (Now using React TopNav) -->
+
+    <div class="container">
+
+        <main>
+            <div class="content">
+                <div data-aos="fade-zoom-in" data-aos-easing="ease-in-back" data-aos-delay="300" data-aos-offset="0" data-aos-duration="1500" class="tag-box">
+                    <div class="tag">INTRODUCING</div>
+                </div>
+
+                <h1 data-aos="fade-zoom-in" data-aos-easing="ease-in-back" data-aos-delay="300" data-aos-offset="0" data-aos-duration="2000">WRITE WORLDS.<br>SHARE STORIES.</h1>
+
+                <p data-aos="fade-zoom-in" data-aos-easing="ease-in-back" data-aos-delay="300" data-aos-offset="0" data-aos-duration="2500" class="description">
+                    The ultimate platform for novelists — write, organize, publish and share your stories with readers worldwide.
+                </p>
+
+                <div data-aos="fade-zoom-in" data-aos-easing="ease-in-back" data-aos-delay="300" data-aos-offset="0" data-aos-duration="3000" class="buttons">
+                    <a href="#features" class="btn-get-started">Explore Features</a>
+                    <button class="btn-signing-main" onclick="window.parent.postMessage('navigate-login', '*')">Start Writing Free</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- 3D Robot Model — Hero Instance -->
+        <div class="robot-slot robot-hero reveal">
+            <div class="robot-inner">
+                <spline-viewer url="https://prod.spline.design/MmplsUrl5339vE1u/scene.splinecode"></spline-viewer>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+         SECTION 1 — THE CRAFT STATEMENT
+         ======================================== -->
+    <section class="craft-section">
+        <div class="noise-bg"></div>
+        <p class="craft-quote reveal">&ldquo;Every great story begins<br> with a single word.&rdquo;</p>
+        <p class="craft-sub reveal" style="transition-delay: 150ms;">NovelCraft gives that word <span>a universe.</span></p>
+    </section>
+
+    <!-- ========================================
+         SECTION 2 — ANIMATED STATS ROW
+         ======================================== -->
+    <section class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-item reveal">
+                <div class="stat-number" data-target="50000" data-suffix="+">0</div>
+                <div class="stat-label">Writers</div>
+            </div>
+            <div class="stat-item reveal" style="transition-delay: 100ms;">
+                <div class="stat-number" data-target="2300000" data-prefix="" data-suffix="" data-display="2.3M">0</div>
+                <div class="stat-label">Chapters Written</div>
+            </div>
+            <div class="stat-item reveal" style="transition-delay: 200ms;">
+                <div class="stat-number" data-target="180" data-suffix="+">0</div>
+                <div class="stat-label">Countries</div>
+            </div>
+            <div class="stat-item reveal" style="transition-delay: 300ms;">
+                <div class="stat-number" data-target="49" data-suffix="" data-decimal="true">0</div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+         SECTION 3 — FEATURES SHOWCASE
+         ======================================== -->
+    <section class="features-section" id="features">
+
+        <!-- Block A: Editor -->
+        <div class="feature-block-wrapper">
+            <div class="feature-block">
+                <div class="feature-visual reveal">
+                    <div class="feature-mockup">
+                        <div class="mockup-bar">
+                            <div class="mockup-dot red"></div>
+                            <div class="mockup-dot yellow"></div>
+                            <div class="mockup-dot green"></div>
+                        </div>
+                        <div class="mockup-body">
+                            <div class="mockup-editor">
+                                <div class="mockup-sidebar">
+                                    <div class="mockup-sidebar-item active">&#128196; Chapter 1</div>
+                                    <div class="mockup-sidebar-item">&#128196; Chapter 2</div>
+                                    <div class="mockup-sidebar-item">&#128196; Chapter 3</div>
+                                    <div class="mockup-sidebar-item">&#128221; Notes</div>
+                                    <div class="mockup-sidebar-item">&#128101; Characters</div>
+                                </div>
+                                <div class="mockup-editor-area">
+                                    <div class="mockup-line heading"></div>
+                                    <div class="mockup-line full"></div>
+                                    <div class="mockup-line long"></div>
+                                    <div class="mockup-line full"></div>
+                                    <div class="mockup-line medium accent"></div>
+                                    <div class="mockup-line full"></div>
+                                    <div class="mockup-line long"></div>
+                                    <div class="mockup-line short"></div>
+                                    <div class="mockup-line full"></div>
+                                    <div class="mockup-line medium"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="feature-content reveal" style="transition-delay: 200ms;">
+                    <h2>Write Without <span>Limits.</span></h2>
+                    <ul class="feature-bullets">
+                        <li>
+                            <span class="bullet-icon">&#9998;</span>
+                            <span>Distraction-free editor with dark mode, focus mode, and custom themes tailored for long-form writing.</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon">&#128202;</span>
+                            <span>Real-time word count, goal tracking, and writing streak analytics to keep you motivated.</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon">&#9729;</span>
+                            <span>Auto-save and cloud sync across all your devices — never lose a paragraph again.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Block B: Reader Mode (Reversed) -->
+        <div class="feature-block-wrapper">
+            <div class="feature-block reversed">
+                <div class="feature-visual reveal">
+                    <div class="feature-mockup">
+                        <div class="mockup-bar">
+                            <div class="mockup-dot red"></div>
+                            <div class="mockup-dot yellow"></div>
+                            <div class="mockup-dot green"></div>
+                        </div>
+                        <div class="mockup-body">
+                            <div class="mockup-reader">
+                                <div class="reader-title">The Last Horizon</div>
+                                <div class="reader-author">by Elara Voss</div>
+                                <div class="reader-text">
+                                    The stars had always whispered to Mira — not in words, but in light. Tonight, standing at the edge of the old observatory, she could feel them pulling at something deep within her chest, a thread connecting her to a story that had been waiting millennia to be told...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="feature-content reveal" style="transition-delay: 200ms;">
+                    <h2>Read. Feel. <span>Remember.</span></h2>
+                    <ul class="feature-bullets">
+                        <li>
+                            <span class="bullet-icon">&#128214;</span>
+                            <span>Beautiful reader mode with adjustable fonts, spacing, and warm/cool themes for maximum immersion.</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon">&#128278;</span>
+                            <span>Inline bookmarks, highlights, and margin notes — interact with every story you love.</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon">&#127760;</span>
+                            <span>Offline reading support — download chapters and read anywhere, anytime.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Block C: Community / Discovery -->
+        <div class="feature-block-wrapper">
+            <div class="feature-block">
+                <div class="feature-visual reveal">
+                    <div class="feature-mockup">
+                        <div class="mockup-bar">
+                            <div class="mockup-dot red"></div>
+                            <div class="mockup-dot yellow"></div>
+                            <div class="mockup-dot green"></div>
+                        </div>
+                        <div class="mockup-body">
+                            <div class="mockup-community">
+                                <div class="community-card">
+                                    <div class="community-card-title">Echoes of Ember</div>
+                                    <div class="community-card-genre">Fantasy</div>
+                                    <div class="community-card-stats">
+                                        <span>&#9733; 4.8</span>
+                                        <span>12.4K reads</span>
+                                    </div>
+                                </div>
+                                <div class="community-card">
+                                    <div class="community-card-title">Neon Veins</div>
+                                    <div class="community-card-genre">Sci-Fi</div>
+                                    <div class="community-card-stats">
+                                        <span>&#9733; 4.9</span>
+                                        <span>8.7K reads</span>
+                                    </div>
+                                </div>
+                                <div class="community-card">
+                                    <div class="community-card-title">Still Waters</div>
+                                    <div class="community-card-genre">Literary Fiction</div>
+                                    <div class="community-card-stats">
+                                        <span>&#9733; 4.7</span>
+                                        <span>5.2K reads</span>
+                                    </div>
+                                </div>
+                                <div class="community-card">
+                                    <div class="community-card-title">The Cipher Room</div>
+                                    <div class="community-card-genre">Thriller</div>
+                                    <div class="community-card-stats">
+                                        <span>&#9733; 4.9</span>
+                                        <span>15.1K reads</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="feature-content reveal" style="transition-delay: 200ms;">
+                    <h2>Find Your <span>Readers.</span></h2>
+                    <ul class="feature-bullets">
+                        <li>
+                            <span class="bullet-icon">&#128270;</span>
+                            <span>Smart discovery algorithm surfaces your work to readers who love your genre.</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon">&#128172;</span>
+                            <span>Build a community — readers can comment, react, and follow your writing journey.</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon">&#128200;</span>
+                            <span>Detailed analytics dashboard — see who's reading, where they stop, and what resonates.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Robot Appearance — Between Features & Editorial -->
+    <div style="padding: 4rem 0; display: flex; align-items: center; justify-content: center;">
+        <div class="robot-slot robot-section reveal">
+            <div class="robot-inner">
+                <spline-viewer url="https://prod.spline.design/MmplsUrl5339vE1u/scene.splinecode"></spline-viewer>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+         SECTION 4 — EDITORIAL QUOTE BAND
+         ======================================== -->
+    <section class="editorial-section">
+        <div class="editorial-quote reveal">
+            Your story deserves more<br> than a notes app.
+            <span class="underline-accent"></span>
+        </div>
+    </section>
+
+    <!-- ========================================
+         SECTION 5 — HOW IT WORKS
+         ======================================== -->
+    <section class="how-section" id="how-it-works">
+        <p class="section-label reveal">How It Works</p>
+
+        <div class="how-step reveal">
+            <div class="step-number">01</div>
+            <div class="step-content">
+                <h3>Write</h3>
+                <p>Open the editor. Your canvas awaits.</p>
+            </div>
+        </div>
+
+        <div class="how-step reveal" style="transition-delay: 100ms;">
+            <div class="step-number">02</div>
+            <div class="step-content">
+                <h3>Organize</h3>
+                <p>Structure volumes, chapters, arcs.</p>
+            </div>
+        </div>
+
+        <div class="how-step reveal" style="transition-delay: 200ms;">
+            <div class="step-number">03</div>
+            <div class="step-content">
+                <h3>Publish</h3>
+                <p>One tap. Your world goes live.</p>
+            </div>
+        </div>
+
+        <div class="how-step reveal" style="transition-delay: 300ms;">
+            <div class="step-number">04</div>
+            <div class="step-content">
+                <h3>Connect</h3>
+                <p>Readers find you. Fans follow you.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+         SECTION 6 — TESTIMONIAL CAROUSEL
+         ======================================== -->
+    <section class="testimonials-section" id="writers">
+        <p class="section-label">What Writers Say</p>
+        <h2 class="reveal">Loved by Storytellers Worldwide</h2>
+
+        <div class="carousel-track">
+            <!-- First set -->
+            <div class="testimonial-card">
+                <p class="testimonial-text">&ldquo;NovelCraft transformed my writing process. The editor feels like it was built by someone who actually writes novels — not just code. I finished my first trilogy here.&rdquo;</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">A</div>
+                    <div class="testimonial-info">
+                        <div class="author-name">Amara Chen</div>
+                        <div class="author-genre">Fantasy &amp; Sci-Fi</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">&ldquo;The reader community here is incredible. Within two weeks of publishing my first chapter, I had 500 followers and the most thoughtful comments I've ever received.&rdquo;</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">M</div>
+                    <div class="testimonial-info">
+                        <div class="author-name">Marcus Rivera</div>
+                        <div class="author-genre">Literary Fiction</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">&ldquo;I've used every writing platform out there. NovelCraft is the first one that made me forget about the tool and just… write. It's beautifully invisible when it needs to be.&rdquo;</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">S</div>
+                    <div class="testimonial-info">
+                        <div class="author-name">Sofia Andersson</div>
+                        <div class="author-genre">Romance &amp; Drama</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Duplicate set for seamless loop -->
+            <div class="testimonial-card">
+                <p class="testimonial-text">&ldquo;NovelCraft transformed my writing process. The editor feels like it was built by someone who actually writes novels — not just code. I finished my first trilogy here.&rdquo;</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">A</div>
+                    <div class="testimonial-info">
+                        <div class="author-name">Amara Chen</div>
+                        <div class="author-genre">Fantasy &amp; Sci-Fi</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">&ldquo;The reader community here is incredible. Within two weeks of publishing my first chapter, I had 500 followers and the most thoughtful comments I've ever received.&rdquo;</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">M</div>
+                    <div class="testimonial-info">
+                        <div class="author-name">Marcus Rivera</div>
+                        <div class="author-genre">Literary Fiction</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">&ldquo;I've used every writing platform out there. NovelCraft is the first one that made me forget about the tool and just… write. It's beautifully invisible when it needs to be.&rdquo;</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">S</div>
+                    <div class="testimonial-info">
+                        <div class="author-name">Sofia Andersson</div>
+                        <div class="author-genre">Romance &amp; Drama</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Robot Appearance — Before CTA (larger) -->
+    <div style="padding: 4rem 0; display: flex; align-items: center; justify-content: center;">
+        <div class="robot-slot robot-section-large reveal">
+            <div class="robot-inner">
+                <spline-viewer url="https://prod.spline.design/MmplsUrl5339vE1u/scene.splinecode"></spline-viewer>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+         SECTION 7 — FINAL CTA
+         ======================================== -->
+    <section class="cta-section">
+        <canvas id="particleCanvas"></canvas>
+        <div class="cta-content">
+            <h2 class="reveal">Your Universe<br>Is Waiting.</h2>
+            <p class="cta-sub reveal" style="transition-delay: 150ms;">Join 50,000 writers already crafting their worlds.</p>
+            <div class="cta-buttons reveal" style="transition-delay: 300ms;">
+                <a href="login.html" class="cta-btn-primary">Start Writing Free</a>
+                <a href="#features" class="cta-btn-outline">Explore Stories</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+         SECTION 8 — FOOTER
+         ======================================== -->
+    <footer class="site-footer" id="community">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo">NovelCraft</div>
+                <p>The creative writing platform where worlds are born and stories find their audience.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="#">Editor</a></li>
+                    <li><a href="#">Reader Mode</a></li>
+                    <li><a href="#">Analytics</a></li>
+                    <li><a href="#">Pricing</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Community</h4>
+                <ul>
+                    <li><a href="#">Discover Stories</a></li>
+                    <li><a href="#">Writing Prompts</a></li>
+                    <li><a href="#">Forums</a></li>
+                    <li><a href="#">Events</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Writers</h4>
+                <ul>
+                    <li><a href="#">Getting Started</a></li>
+                    <li><a href="#">Writing Tips</a></li>
+                    <li><a href="#">Success Stories</a></li>
+                    <li><a href="#">API</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                    <li><a href="#">DMCA</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span class="copyright">&copy; 2026 NovelCraft. All rights reserved.</span>
+            <div class="social-icons">
+                <a href="#" aria-label="Twitter">&#120143;</a>
+                <a href="#" aria-label="Instagram">&#9744;</a>
+                <a href="#" aria-label="Discord">&#9830;</a>
+                <a href="#" aria-label="GitHub">&#9733;</a>
+            </div>
+            <span class="made-with">Made with <span>&#10022;</span> for storytellers.</span>
+        </div>
+    </footer>
+
+    <!-- ========================================
+         SCRIPTS
+         ======================================== -->
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.68/build/spline-viewer.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+    AOS.init({ once: false, mirror: true });
+
+    /* ==========================
+       SCROLL REVEAL (Intersection Observer)
+       ========================== */
+    (function() {
+        const revealEls = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                } else {
+                    entry.target.classList.remove('is-visible');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        revealEls.forEach(function(el) {
+            observer.observe(el);
+        });
+    })();
+
+    /* ==========================
+       COUNTER ANIMATION
+       ========================== */
+    (function() {
+        var statNumbers = document.querySelectorAll('.stat-number');
+
+        function animateCounters() {
+
+            statNumbers.forEach(function(el) {
+                var target = parseInt(el.getAttribute('data-target'), 10);
+                var suffix = el.getAttribute('data-suffix') || '';
+                var display = el.getAttribute('data-display');
+                var isDecimal = el.getAttribute('data-decimal') === 'true';
+                var duration = 2000;
+                var startTime = null;
+
+                function update(timestamp) {
+                    if (!startTime) startTime = timestamp;
+                    var progress = Math.min((timestamp - startTime) / duration, 1);
+                    /* ease-out quad */
+                    var ease = 1 - Math.pow(1 - progress, 3);
+                    var current = Math.floor(ease * target);
+
+                    if (display) {
+                        /* For "2.3M" style: animate up to display value */
+                        var numericPart = parseFloat(display);
+                        var textPart = display.replace(/[0-9.]/g, '');
+                        var curr = (ease * numericPart).toFixed(1);
+                        el.textContent = curr + textPart;
+                    } else if (isDecimal) {
+                        el.textContent = (ease * target / 10).toFixed(1) + '\u2605';
+                    } else if (target >= 1000) {
+                        el.textContent = current.toLocaleString() + suffix;
+                    } else {
+                        el.textContent = current + suffix;
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    } else {
+                        /* Final value */
+                        if (display) {
+                            el.textContent = display;
+                        } else if (isDecimal) {
+                            el.textContent = (target / 10).toFixed(1) + '\u2605';
+                        } else {
+                            el.textContent = target.toLocaleString() + suffix;
+                        }
+                    }
+                }
+
+                requestAnimationFrame(update);
+            });
+        }
+
+        var statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            var statsObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        animateCounters();
+                    } else {
+                        statNumbers.forEach(function(el) {
+                            el.textContent = '0';
+                        });
+                    }
+                });
+            }, { threshold: 0.3 });
+            statsObserver.observe(statsSection);
+        }
+    })();
+
+    /* ==========================
+       HOW-IT-WORKS STEP REVEAL
+       ========================== */
+    (function() {
+        var steps = document.querySelectorAll('.how-step');
+        var stepObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                } else {
+                    entry.target.classList.remove('is-visible');
+                }
+            });
+        }, { threshold: 0.4 });
+
+        steps.forEach(function(step) {
+            stepObserver.observe(step);
+        });
+    })();
+
+    /* ==========================
+       PARTICLE / STAR FIELD (CTA)
+       ========================== */
+    (function() {
+        var canvas = document.getElementById('particleCanvas');
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+        var particles = [];
+        var particleCount = 120;
+
+        function resize() {
+            var section = canvas.parentElement;
+            canvas.width = section.offsetWidth;
+            canvas.height = section.offsetHeight;
+        }
+
+        function createParticles() {
+            particles = [];
+            for (var i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 1.5 + 0.5,
+                    dx: (Math.random() - 0.5) * 0.3,
+                    dy: (Math.random() - 0.5) * 0.3,
+                    opacity: Math.random() * 0.6 + 0.2,
+                    twinkleSpeed: Math.random() * 0.02 + 0.005,
+                    twinkleOffset: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            var time = Date.now() * 0.001;
+
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                p.x += p.dx;
+                p.y += p.dy;
+
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+
+                var twinkle = (Math.sin(time * p.twinkleSpeed * 60 + p.twinkleOffset) + 1) * 0.5;
+                var alpha = p.opacity * (0.4 + twinkle * 0.6);
+
+                /* Alternate between violet and white stars */
+                if (i % 5 === 0) {
+                    ctx.fillStyle = 'rgba(226, 74, 74, ' + alpha + ')';
+                } else if (i % 7 === 0) {
+                    ctx.fillStyle = 'rgba(255, 101, 132, ' + (alpha * 0.7) + ')';
+                } else {
+                    ctx.fillStyle = 'rgba(255, 240, 240, ' + alpha + ')';
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        resize();
+        createParticles();
+        draw();
+
+        window.addEventListener('resize', function() {
+            resize();
+            createParticles();
+        });
+    })();
+
+    /* Robot slots use the standard .reveal observer — no special JS needed */
+
+    /* ==========================
+       HIDE SPLINE WATERMARK
+       ========================== */
+    (function() {
+        function hideSplineLogo(viewer) {
+            if (!viewer || !viewer.shadowRoot) return;
+            var logo = viewer.shadowRoot.querySelector('#logo');
+            if (logo) { logo.style.display = 'none'; }
+            viewer.shadowRoot.querySelectorAll('a[href*="spline"]').forEach(function(a) {
+                a.style.display = 'none';
+            });
+            /* Hide any bottom-right positioned watermark elements */
+            viewer.shadowRoot.querySelectorAll('div, a, img, svg').forEach(function(el) {
+                var style = window.getComputedStyle(el);
+                if (style.position === 'absolute' && style.bottom !== 'auto' && style.right !== 'auto' &&
+                    parseInt(style.bottom) <= 20 && parseInt(style.right) <= 20) {
+                    el.style.display = 'none';
+                }
+            });
+        }
+
+        function processViewers() {
+            document.querySelectorAll('spline-viewer').forEach(function(v) {
+                hideSplineLogo(v);
+                if (v.shadowRoot) {
+                    var obs = new MutationObserver(function() { hideSplineLogo(v); });
+                    obs.observe(v.shadowRoot, { childList: true, subtree: true });
+                }
+            });
+        }
+
+        window.addEventListener('load', function() {
+            setTimeout(processViewers, 1500);
+            setTimeout(processViewers, 3000);
+            setTimeout(processViewers, 6000);
+        });
+    })();
+    </script>
+</body>
+</html>
+
