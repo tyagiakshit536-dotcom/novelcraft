@@ -14,7 +14,7 @@ export default function ReadingListPage() {
   }).filter(i => i.novel);
 
   return (
-    <div className="min-h-screen p-6 animate-fade-in">
+    <div className="min-h-screen p-4 sm:p-5 md:p-6 animate-fade-in">
       <h1 className="font-display text-3xl font-bold mb-6">Reading List</h1>
 
       {listItems.length === 0 ? (
@@ -42,7 +42,7 @@ export default function ReadingListPage() {
               <button
                 key={item.id}
                 onClick={() => navigate(`/novel/${novel.id}`)}
-                className="w-full flex items-center gap-4 p-4 glass-card glass-card-hover text-left"
+                className="w-full flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 glass-card glass-card-hover text-left"
               >
                 <div className="w-16 h-24 rounded-xl overflow-hidden bg-bg-tertiary shrink-0">
                   {novel.coverImageUrl ? (

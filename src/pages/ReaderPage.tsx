@@ -62,8 +62,7 @@ export default function ReaderPage() {
   const store = useStore();
   const contentRef = useRef<HTMLDivElement>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth > 768 : true));
-  const [isMobileView, setIsMobileView] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024);
   const [showAI, setShowAI] = useState(false);
   const [showTranslate, setShowTranslate] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -94,18 +93,6 @@ export default function ReaderPage() {
     const el = contentRef.current;
     el?.addEventListener('scroll', handleScroll);
     return () => el?.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const onResize = () => {
-      const mobile = window.innerWidth <= 768;
-      setIsMobileView(mobile);
-      if (mobile) {
-        setSidebarOpen(false);
-      }
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   // Keyboard navigation
@@ -139,7 +126,7 @@ export default function ReaderPage() {
       </div>
 
       {/* ─── Top Toolbar (Editor-style) ─── */}
-      <div className="h-12 bg-bg-secondary/50 border-b border-divider flex items-center px-2 gap-1 shrink-0">
+      <div className="h-12 bg-bg-secondary/50 border-b border-divider flex items-center px-2 gap-1 shrink-0 overflow-x-auto">
         <button onClick={() => navigate(`/novel/${novelId}`)} className="w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors">
           <ArrowLeft size={18} />
         </button>
@@ -197,10 +184,18 @@ export default function ReaderPage() {
       </div>
 
       {/* ─── Main Layout ─── */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
+        {sidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden fixed inset-0 bg-black/45 z-10"
+            aria-label="Close contents"
+          />
+        )}
+
         {/* Left Sidebar — Collapsible Volume/Chapter tree */}
         {sidebarOpen && (
-          <div className="w-60 bg-bg-secondary/30 border-r border-divider flex flex-col shrink-0 overflow-y-auto reader-sidebar">
+          <div className="absolute lg:relative inset-y-0 left-0 z-20 w-[82vw] max-w-60 bg-bg-secondary/95 lg:bg-bg-secondary/30 border-r border-divider flex flex-col shrink-0 overflow-y-auto reader-sidebar">
             <div className="p-3 border-b border-divider">
               <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Contents</h3>
             </div>
@@ -228,7 +223,7 @@ export default function ReaderPage() {
           ref={contentRef}
           className={`flex-1 overflow-y-auto ${bgOption.class} transition-colors duration-300`}
         >
-          <div className="reader-canvas max-w-[720px] mx-auto px-8 py-12" style={{ fontFamily: store.readerFont + ', serif', fontSize: store.readerFontSize + 'px' }}>
+          <div className="max-w-[720px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12" style={{ fontFamily: store.readerFont + ', serif', fontSize: store.readerFontSize + 'px' }}>
             {/* Chapter Banner */}
             {currentChapter.bannerImageUrl && (
               <img src={currentChapter.bannerImageUrl} alt="" className="w-full rounded-2xl mb-8" />
@@ -256,7 +251,7 @@ export default function ReaderPage() {
             </div>
 
             {/* Chapter Navigation */}
-            <div className="hidden md:flex items-center justify-between gap-4 mt-8 mb-16">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-8 mb-16">
               {prevChapter ? (
                 <button
                   onClick={() => navigate(`/read/${novelId}/${prevChapter.id}`)}
@@ -281,51 +276,8 @@ export default function ReaderPage() {
         </div>
       </div>
 
-      {isMobileView && (
-        <>
-          <div className="reader-nav-buttons pointer-events-none">
-            <button
-              onClick={() => prevChapter && navigate(`/read/${novelId}/${prevChapter.id}`)}
-              disabled={!prevChapter}
-              className="reader-nav-btn pointer-events-auto flex items-center justify-center bg-black/45 border border-white/20 text-white disabled:opacity-40"
-              aria-label="Previous chapter"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={() => nextChapter && navigate(`/read/${novelId}/${nextChapter.id}`)}
-              disabled={!nextChapter}
-              className="reader-nav-btn pointer-events-auto flex items-center justify-center bg-black/45 border border-white/20 text-white disabled:opacity-40"
-              aria-label="Next chapter"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-
-          <div className="fixed top-12 left-0 right-0 bottom-20 z-20 pointer-events-none">
-            <button
-              onClick={() => prevChapter && navigate(`/read/${novelId}/${prevChapter.id}`)}
-              disabled={!prevChapter}
-              className="pointer-events-auto absolute left-0 top-0 bottom-0 w-[30%] bg-transparent"
-              aria-label="Tap left for previous chapter"
-            />
-            <button
-              onClick={() => setShowSettings((v) => !v)}
-              className="pointer-events-auto absolute left-[30%] top-0 bottom-0 w-[40%] bg-transparent"
-              aria-label="Tap center to toggle reader controls"
-            />
-            <button
-              onClick={() => nextChapter && navigate(`/read/${novelId}/${nextChapter.id}`)}
-              disabled={!nextChapter}
-              className="pointer-events-auto absolute right-0 top-0 bottom-0 w-[30%] bg-transparent"
-              aria-label="Tap right for next chapter"
-            />
-          </div>
-        </>
-      )}
-
       {/* ─── Status Bar ─── */}
-      <div className="hidden md:flex h-7 bg-bg-secondary/50 border-t border-divider items-center px-4 text-xs text-text-secondary gap-4 shrink-0">
+      <div className="hidden sm:flex h-7 bg-bg-secondary/50 border-t border-divider items-center px-4 text-xs text-text-secondary gap-4 shrink-0">
         <span>{novel.title}</span>
         <span className="text-text-secondary/40">|</span>
         <span>{currentChapter.title}</span>
@@ -343,9 +295,8 @@ export default function ReaderPage() {
 
       {/* ─── Settings Panel ─── */}
       {showSettings && (
-        <div className="modal-overlay fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowSettings(false)}>
-          <div className="modal-card w-full max-w-lg glass-card rounded-t-3xl p-6 pb-10 animate-fade-in" onClick={e => e.stopPropagation()}>
-            <div className="modal-handle hidden" />
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowSettings(false)}>
+          <div className="w-full max-w-lg glass-card rounded-t-3xl p-6 pb-10 animate-fade-in" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-semibold text-lg">Reader Settings</h3>
               <button onClick={() => setShowSettings(false)} className="w-8 h-8 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary">

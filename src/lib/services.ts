@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import type { Provider } from '@supabase/supabase-js';
 import type {
   User, Novel, Volume, Chapter, ReadingProgress,
   Review, Comment, ReadingListItem, CharacterEntry, WorldEntry, Notification,
@@ -248,21 +247,6 @@ async function assembleNovels(novelRows: Record<string, unknown>[]): Promise<Nov
 // ─── Auth Service ───
 
 export const authService = {
-  async signInWithOAuth(provider: Provider) {
-    const allowedProviders = new Set<Provider>(['google', 'github', 'twitter']);
-    if (!allowedProviders.has(provider)) {
-      throw new Error(`Unsupported OAuth provider: ${provider}`);
-    }
-
-    const redirectTo = `${window.location.origin}/auth`;
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo },
-    });
-    if (error) throw error;
-    return data;
-  },
-
   async signUp(email: string, password: string, username: string, displayName: string) {
     const { data, error } = await supabase.auth.signUp({
       email,

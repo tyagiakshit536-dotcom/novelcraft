@@ -64,7 +64,7 @@ export default function SearchOverlay() {
   if (!searchOpen) return null;
 
   return (
-    <div className="search-overlay fixed inset-0 z-50 bg-bg-primary/95 backdrop-blur-2xl animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-bg-primary/95 backdrop-blur-2xl animate-fade-in overflow-y-auto">
       <div className="w-full px-4 md:px-8 lg:px-12 py-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
@@ -83,7 +83,7 @@ export default function SearchOverlay() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="What do you want to read?"
-                className="search-input w-full pl-12 pr-4 py-3.5 bg-bg-secondary rounded-2xl border border-divider focus:border-accent focus:outline-none text-text-primary placeholder:text-text-secondary/50 text-lg"
+                className="w-full pl-12 pr-4 py-3.5 bg-bg-secondary rounded-2xl border border-divider focus:border-accent focus:outline-none text-text-primary placeholder:text-text-secondary/50 text-lg"
               />
             </div>
             <button
@@ -94,7 +94,7 @@ export default function SearchOverlay() {
             </button>
           </div>
 
-          <div className="search-filters flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-wrap gap-2 mb-6">
             {[
               { key: 'all' as const, label: 'All', icon: Sparkles },
               { key: 'novels' as const, label: 'Novels', icon: BookOpen },
@@ -141,7 +141,7 @@ export default function SearchOverlay() {
                       close();
                       navigate(`/novel/${novel.id}`);
                     }}
-                    className="search-result-card glass-card p-3 rounded-2xl text-left hover:scale-[1.01] transition-transform"
+                    className="glass-card p-3 rounded-2xl text-left hover:scale-[1.01] transition-transform"
                   >
                     <div className="flex gap-3">
                       <div className="w-14 h-20 rounded-xl bg-bg-tertiary overflow-hidden shrink-0 relative">

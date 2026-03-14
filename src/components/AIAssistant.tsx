@@ -75,15 +75,14 @@ export default function AIAssistant({ isOpen, onClose }: { isOpen: boolean; onCl
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="modal-card w-full max-w-2xl h-[85vh] flex flex-col rounded-2xl overflow-hidden animate-scale-in" style={{
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="w-full max-w-2xl h-[92vh] sm:h-[85vh] flex flex-col rounded-2xl overflow-hidden animate-scale-in" style={{
         background: 'linear-gradient(180deg, #141414 0%, #1a1a1a 100%)',
         border: '1px solid rgba(229, 9, 20, 0.2)',
         boxShadow: '0 0 60px rgba(229, 9, 20, 0.1)',
       }}>
-        <div className="modal-handle hidden" />
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-white/10">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-3 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="ai-btn-shiny w-9 h-9 rounded-lg flex items-center justify-center">
               <Sparkles size={18} className="text-white" />
@@ -98,19 +97,19 @@ export default function AIAssistant({ isOpen, onClose }: { isOpen: boolean; onCl
           <div className="flex items-center gap-3">
             <div
               className="relative flex items-center bg-white/10 rounded-full p-0.5 cursor-pointer select-none"
-              style={{ width: '160px', height: '32px' }}
+              style={{ width: '136px', height: '32px' }}
               onClick={() => setMode(m => m === 'general' ? 'editor' : 'general')}
             >
               {/* Sliding background pill */}
               <div
-                className="absolute top-0.5 h-[28px] w-[78px] rounded-full bg-accent transition-transform duration-300 ease-in-out"
-                style={{ transform: mode === 'editor' ? 'translateX(78px)' : 'translateX(0)' }}
+                className="absolute top-0.5 h-[28px] w-[66px] rounded-full bg-accent transition-transform duration-300 ease-in-out"
+                style={{ transform: mode === 'editor' ? 'translateX(66px)' : 'translateX(0)' }}
               />
-              <div className="relative z-10 flex items-center justify-center gap-1.5 w-[78px] text-[11px] font-semibold">
+              <div className="relative z-10 flex items-center justify-center gap-1.5 w-[66px] text-[11px] font-semibold">
                 <MessageSquare size={11} className={mode === 'general' ? 'text-white' : 'text-gray-400'} />
                 <span className={mode === 'general' ? 'text-white' : 'text-gray-400'}>General</span>
               </div>
-              <div className="relative z-10 flex items-center justify-center gap-1.5 w-[78px] text-[11px] font-semibold">
+              <div className="relative z-10 flex items-center justify-center gap-1.5 w-[66px] text-[11px] font-semibold">
                 <Edit3 size={11} className={mode === 'editor' ? 'text-white' : 'text-gray-400'} />
                 <span className={mode === 'editor' ? 'text-white' : 'text-gray-400'}>Editor</span>
               </div>

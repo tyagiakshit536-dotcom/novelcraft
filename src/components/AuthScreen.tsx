@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Loader2 } from 'lucide-react';
-import type { Provider } from '@supabase/supabase-js';
 import { useStore } from '../store';
+import { supabase } from '../lib/supabase';
 
 type AuthMode = 'login' | 'signup' | 'confirm-email';
 
@@ -11,13 +11,7 @@ export default function AuthScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login, signup, loginWithOAuth, completeOnboarding } = useStore();
-
-  const parseProvider = (value: unknown): Provider | null => {
-    const provider = typeof value === 'string' ? value.toLowerCase().trim() : '';
-    const supportedProviders: Provider[] = ['google', 'github', 'twitter'];
-    return supportedProviders.includes(provider as Provider) ? (provider as Provider) : null;
-  };
+  const { login, signup, completeOnboarding } = useStore();
 
   React.useEffect(() => {
     const handleMessage = async (e: MessageEvent) => {
@@ -67,27 +61,33 @@ export default function AuthScreen() {
         } finally {
           setLoading(false);
         }
-      } else if (e.data?.type === 'auth-oauth') {
-        const provider = parseProvider(e.data?.payload?.provider);
-        if (!provider) {
-          setError('Unsupported sign-in provider.');
+      } else if (e.data?.type === 'auth-social') {
+        const provider = e.data?.payload?.provider;
+        if (!provider || !['google', 'github', 'twitter'].includes(provider)) {
+          setError('Unsupported social provider.');
           return;
         }
-
         setLoading(true);
         setError('');
         try {
-          await loginWithOAuth(provider);
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider,
+            options: { redirectTo: `${window.location.origin}/auth` },
+          });
+          if (error) {
+            throw error;
+          }
         } catch (err: unknown) {
-          setLoading(false);
           setError(err instanceof Error ? err.message : 'Social login failed. Please try again.');
+        } finally {
+          setLoading(false);
         }
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [login, signup, loginWithOAuth, completeOnboarding]);
+  }, [login, signup, completeOnboarding]);
 
   if (mode === 'confirm-email') {
     return (

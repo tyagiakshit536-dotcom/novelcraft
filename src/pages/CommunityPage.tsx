@@ -36,12 +36,12 @@ export default function CommunityPage() {
   ];
 
   return (
-    <div className="min-h-screen p-6 animate-fade-in">
+    <div className="min-h-screen p-4 sm:p-5 md:p-6 animate-fade-in">
       <h1 className="font-display text-3xl font-bold mb-2">Community</h1>
       <p className="text-text-secondary mb-6">Connect, share, and grow with fellow writers</p>
 
       {/* Tabs */}
-      <div className="community-tabs flex gap-2 mb-8 overflow-x-auto pb-2">
+      <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
         {tabs.map(t => (
           <button
             key={t.key}
@@ -57,7 +57,7 @@ export default function CommunityPage() {
 
       {/* Writing Prompts */}
       {activeTab === 'prompts' && (
-        <div className="community-grid space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-semibold">Daily Prompts</h2>
           </div>
@@ -75,7 +75,7 @@ export default function CommunityPage() {
 
       {/* Challenges */}
       {activeTab === 'challenges' && (
-        <div className="community-grid space-y-4">
+        <div className="space-y-4">
           {sampleChallenges.map(challenge => (
             <div key={challenge.id} className="glass-card p-5 glass-card-hover cursor-pointer">
               <div className="flex items-start justify-between mb-2">
@@ -98,9 +98,9 @@ export default function CommunityPage() {
 
       {/* Discussions */}
       {activeTab === 'discussions' && (
-        <div className="community-grid space-y-3">
+        <div className="space-y-3">
           {sampleDiscussions.map(disc => (
-            <div key={disc.id} className="leaderboard-row glass-card p-4 glass-card-hover cursor-pointer flex items-center gap-4">
+            <div key={disc.id} className="glass-card p-4 glass-card-hover cursor-pointer flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold shrink-0">
                 {disc.author.charAt(0)}
               </div>

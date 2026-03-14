@@ -20,7 +20,7 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <div className="min-h-screen p-6 animate-fade-in">
+    <div className="min-h-screen p-4 sm:p-5 md:p-6 animate-fade-in">
       <h1 className="font-display text-3xl font-bold mb-2 flex items-center gap-3">
         <BarChart3 className="text-accent" size={28} /> Your Analytics
       </h1>
@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
       ) : (
         <div className="space-y-3">
           {userNovels.map(novel => (
-            <div key={novel.id} className="glass-card p-4 flex items-center gap-4">
+            <div key={novel.id} className="glass-card p-4 flex flex-wrap sm:flex-nowrap items-center gap-4">
               <div className="w-12 h-16 rounded-lg bg-bg-tertiary overflow-hidden shrink-0">
                 {novel.coverImageUrl ? (
                   <img src={novel.coverImageUrl} alt="" className="w-full h-full object-cover" />
@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
                   {novel.status}
                 </span>
               </div>
-              <div className="flex items-center gap-6 text-sm text-text-secondary">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm text-text-secondary">
                 <span className="flex items-center gap-1"><Eye size={14} /> {novel.totalReads.toLocaleString()}</span>
                 <span className="flex items-center gap-1 text-gold"><Star size={14} className="fill-gold" /> {novel.ratingAvg}</span>
                 <span className="flex items-center gap-1"><BookOpen size={14} /> {novel.totalWords.toLocaleString()} words</span>

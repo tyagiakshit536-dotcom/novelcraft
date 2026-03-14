@@ -138,13 +138,13 @@ export default function HelpPage() {
           </div>
         </section>
 
-        <section className="glass-card rounded-3xl p-5 md:p-6 flex flex-col min-h-[640px]">
+        <section className="glass-card rounded-3xl p-5 md:p-6 flex flex-col min-h-[520px] md:min-h-[640px]">
           <div className="flex items-center gap-3 mb-4">
             <Bot size={20} className="text-accent" />
             <h2 className="text-xl font-semibold">{assistantName}</h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mb-4 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4 text-xs">
             <div className="rounded-xl p-2 bg-bg-primary border border-divider text-center">
               <BookOpen size={14} className="mx-auto mb-1 text-gold" />
               Reading

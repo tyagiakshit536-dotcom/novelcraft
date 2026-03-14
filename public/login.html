@@ -6,12 +6,6 @@
     <title>NovelCraft — Sign In</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-    :root {
-        --desktop-scale: 1;
-        --desktop-width: 1366px;
-        --desktop-height: 768px;
-    }
-
     *, *::before, *::after {
         margin: 0;
         padding: 0;
@@ -27,29 +21,6 @@
         color: #FFF0F0;
     }
 
-    html.desktop-like-mode,
-    body.desktop-like-mode {
-        width: 100%;
-        height: auto;
-        min-width: var(--desktop-width);
-        overflow-x: auto;
-        overflow-y: auto;
-    }
-
-    #desktop-canvas-shell {
-        position: relative;
-        width: calc(var(--desktop-width) * var(--desktop-scale));
-        min-height: calc(var(--desktop-height) * var(--desktop-scale));
-        overflow: hidden;
-    }
-
-    #desktop-canvas {
-        width: var(--desktop-width);
-        min-height: var(--desktop-height);
-        transform-origin: top left;
-        overflow: hidden;
-    }
-
     /* ============================================
        3D ORB — ZOOMED FULL-SCREEN (CROPS WATERMARK)
        The viewer is 140% of viewport so the bottom-right
@@ -60,7 +31,6 @@
         inset: 0;
         overflow: hidden;
         z-index: 0;
-        zoom: 109%;
     }
 
     .orb-stage spline-viewer {
@@ -516,130 +486,50 @@
     /* ============================================
        RESPONSIVE
        ============================================ */
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         .orb-stage {
             display: none;
         }
 
         .login-float {
+            inset: 50% auto auto 50%;
             left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 400px;
-            padding: 1.5rem;
-            justify-content: center;
-            background: rgba(26, 14, 14, 0.62);
-            backdrop-filter: blur(18px);
-            border-radius: 20px;
-            margin: auto;
+            top: 50%;
+            width: min(92vw, 500px);
             height: auto;
-            min-height: calc(100vh - 32px);
+            max-height: 92vh;
+            transform: translate(-50%, -50%);
+            animation: none;
+            padding: 1.5rem;
+            border: 1px solid rgba(226, 74, 74, 0.15);
+            border-radius: 18px;
+            background: rgba(26, 14, 14, 0.68);
+            backdrop-filter: blur(18px);
         }
 
         .lf-welcome {
+            white-space: normal;
             text-align: center;
-            font-size: 2rem;
-        }
-
-        .input-group input {
-            height: 48px;
-            padding-top: 0.8rem;
-            padding-bottom: 0.8rem;
-            font-size: 16px;
-        }
-
-        .btn-submit {
-            height: 48px;
-            width: 100%;
-        }
-
-        .back-home {
-            margin-top: 1rem;
         }
     }
 
     @media (max-width: 520px) {
         .login-float {
-            width: 100%;
-            padding: 2rem 1.5rem;
-            background: rgba(26, 14, 14, 0.5);
-            backdrop-filter: blur(20px);
+            width: min(82vw, 360px);
+            padding: 0.85rem 0.8rem;
+        }
+
+        .lf-welcome {
+            font-size: 1.35rem;
+            margin-bottom: 1rem;
         }
 
         .social-row { gap: 0.4rem; }
         .btn-social { width: 40px; height: 40px; }
     }
-
-    /* Mobile only (phones): center panel and remove orb. Tablet/desktop are unchanged. */
-    @media (max-width: 767px) {
-        html, body {
-            overflow-y: auto;
-            height: auto;
-            min-height: 100%;
-        }
-
-        .orb-stage {
-            display: none !important;
-        }
-
-        .login-float {
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            width: min(92vw, 500px) !important;
-            padding: 2rem 1.25rem !important;
-            animation: none !important;
-        }
-
-        .social-row {
-            gap: 0.45rem;
-        }
-
-        .btn-social {
-            width: 42px;
-            height: 42px;
-        }
-    }
-
-    @media (max-width: 767px) {
-        html.desktop-like-mode .orb-stage {
-            display: none !important;
-        }
-
-        html.desktop-like-mode .login-float {
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            width: min(92vw, 500px) !important;
-            padding: 2rem 1.25rem !important;
-            animation: none !important;
-            background: rgba(26, 14, 14, 0.5) !important;
-            backdrop-filter: blur(20px) !important;
-        }
-    }
-
-    /* Keep desktop dimensions intact when desktop-like mode is active on mobile/tablet. */
-    html.desktop-like-mode .login-float {
-        left: calc(50% - 420px) !important;
-        width: 500px !important;
-        padding: 2.5rem 2.8rem !important;
-        background: transparent !important;
-        backdrop-filter: none !important;
-    }
-
-    html.desktop-like-mode .social-row {
-        gap: 0.55rem !important;
-    }
-
-    html.desktop-like-mode .btn-social {
-        width: 46px !important;
-        height: 46px !important;
-    }
-
     </style>
 </head>
 <body>
-
-    <div id="desktop-canvas-shell">
-    <div id="desktop-canvas">
 
     <!-- 3D Orb — Zoomed 140% to crop out watermark -->
     <div class="orb-stage">
@@ -736,57 +626,8 @@
             <a href="index.html">&#8592; Back to home</a>
         </div>
     </div>
-    </div>
-    </div>
 
     <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.68/build/spline-viewer.js"></script>
-    <script>
-    (function() {
-        var DESKTOP_LIKE_ON_MOBILE = true;
-        var DESKTOP_WIDTH = 1366;
-        var DESKTOP_HEIGHT = 768;
-
-        if (!DESKTOP_LIKE_ON_MOBILE) return;
-
-        function isMobileOrTablet() {
-            var ua = navigator.userAgent || '';
-            var mobileUa = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-            var coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-            var narrow = (window.innerWidth || 0) <= 1200;
-            return mobileUa || (coarsePointer && narrow);
-        }
-
-        if (!isMobileOrTablet()) return;
-
-        var html = document.documentElement;
-        var body = document.body;
-        var shell = document.getElementById('desktop-canvas-shell');
-        var canvas = document.getElementById('desktop-canvas');
-
-        if (!shell || !canvas) return;
-
-        html.classList.add('desktop-like-mode');
-        body.classList.add('desktop-like-mode');
-        html.style.setProperty('--desktop-width', DESKTOP_WIDTH + 'px');
-        html.style.setProperty('--desktop-height', DESKTOP_HEIGHT + 'px');
-
-        function updateScale() {
-            var vw = (window.visualViewport && window.visualViewport.width) || window.innerWidth;
-            var vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-            var scale = Math.min(vw / DESKTOP_WIDTH, vh / DESKTOP_HEIGHT, 1);
-            html.style.setProperty('--desktop-scale', String(scale));
-            canvas.style.transform = 'scale(' + scale + ')';
-            shell.style.height = (DESKTOP_HEIGHT * scale) + 'px';
-        }
-
-        updateScale();
-        window.addEventListener('resize', updateScale);
-        window.addEventListener('orientationchange', updateScale);
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', updateScale);
-        }
-    })();
-    </script>
     <script>
     (function() {
         /* Toggle */
@@ -889,11 +730,11 @@
         handleSubmit(signupForm);
 
         /* Social OAuth */
-        document.querySelectorAll('.btn-social').forEach(function(btn) {
+        document.querySelectorAll('.btn-social[data-provider]').forEach(function(btn) {
             btn.addEventListener('click', function() {
-                var provider = (btn.getAttribute('data-provider') || '').trim().toLowerCase();
+                var provider = btn.getAttribute('data-provider');
                 if (!provider) return;
-                window.parent.postMessage({ type: 'auth-oauth', payload: { provider: provider } }, '*');
+                window.parent.postMessage({ type: 'auth-social', payload: { provider: provider } }, '*');
             });
         });
 

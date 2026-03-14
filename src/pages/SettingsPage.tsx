@@ -54,7 +54,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="settings-layout min-h-screen px-4 md:px-8 lg:px-12 py-8 animate-fade-in">
+    <div className="min-h-screen px-4 md:px-8 lg:px-12 py-8 animate-fade-in">
       <section className="relative overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-bg-secondary via-bg-tertiary to-bg-primary p-6 md:p-8 mb-6">
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-accent/10 blur-3xl" />
         <div className="absolute -bottom-16 left-1/3 w-72 h-72 rounded-full bg-gold/10 blur-3xl" />
@@ -68,7 +68,7 @@ export default function SettingsPage() {
       </section>
 
       <div className="space-y-5 w-full">
-        <section className="settings-section glass-card p-5 md:p-6 rounded-3xl">
+        <section className="glass-card p-5 md:p-6 rounded-3xl">
           <div className="flex items-center gap-3 mb-5">
             <User size={20} className="text-accent" />
             <h2 className="text-xl font-semibold">Profile & Role</h2>
@@ -80,7 +80,7 @@ export default function SettingsPage() {
               <input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="settings-input w-full px-4 py-3 rounded-xl bg-bg-primary border border-divider focus:border-accent focus:outline-none"
+                className="w-full px-4 py-3 rounded-xl bg-bg-primary border border-divider focus:border-accent focus:outline-none"
               />
             </div>
             <div>
@@ -134,7 +134,7 @@ export default function SettingsPage() {
                       handleAvatarFile(e.target.files?.[0] || null);
                       e.currentTarget.value = '';
                     }}
-                    className="settings-input flex-1 px-4 py-3 rounded-xl bg-bg-primary border border-divider focus:border-accent focus:outline-none file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-accent file:text-white file:text-sm"
+                    className="flex-1 px-4 py-3 rounded-xl bg-bg-primary border border-divider focus:border-accent focus:outline-none file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-accent file:text-white file:text-sm"
                   />
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar preview" className="w-12 h-12 rounded-xl object-cover border border-divider" />
@@ -152,14 +152,14 @@ export default function SettingsPage() {
           <div className="mt-5">
             <button
               onClick={saveProfile}
-              className="settings-btn px-6 py-2.5 rounded-xl btn btn-primary inline-flex items-center gap-2 font-semibold"
+              className="px-6 py-2.5 rounded-xl btn btn-primary inline-flex items-center gap-2 font-semibold"
             >
               {saved ? <><Check size={16} /> Saved</> : 'Save Profile'}
             </button>
           </div>
         </section>
 
-        <section className="settings-section glass-card p-5 md:p-6 rounded-3xl">
+        <section className="glass-card p-5 md:p-6 rounded-3xl">
           <div className="flex items-center gap-3 mb-5">
             <Globe2 size={20} className="text-gold" />
             <h2 className="text-xl font-semibold">Website Language</h2>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <section className="settings-section glass-card p-5 md:p-6 rounded-3xl">
+        <section className="glass-card p-5 md:p-6 rounded-3xl">
           <div className="flex items-center gap-3 mb-5">
             <Sparkles size={20} className="text-accent" />
             <h2 className="text-xl font-semibold">Appearance & Theme</h2>
@@ -210,7 +210,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <section className="settings-section glass-card p-5 md:p-6 rounded-3xl">
+        <section className="glass-card p-5 md:p-6 rounded-3xl">
           <div className="flex items-center gap-3 mb-5">
             <Bell size={20} className="text-accent" />
             <h2 className="text-xl font-semibold">Notification Preferences</h2>
@@ -242,7 +242,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <section className="settings-section glass-card p-5 md:p-6 rounded-3xl">
+        <section className="glass-card p-5 md:p-6 rounded-3xl">
           <div className="flex items-center gap-3 mb-5">
             <BookOpen size={20} className="text-gold" />
             <h2 className="text-xl font-semibold">Editor & Reader</h2>
@@ -325,7 +325,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <section className="settings-section glass-card p-5 md:p-6 rounded-3xl">
+        <section className="glass-card p-5 md:p-6 rounded-3xl">
           <div className="flex items-center gap-3 mb-5">
             <Shield size={20} className="text-accent" />
             <h2 className="text-xl font-semibold">Tutorial & Privacy</h2>

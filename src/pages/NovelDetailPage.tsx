@@ -80,7 +80,7 @@ export default function NovelDetailPage() {
   return (
     <div className="min-h-screen pb-12 animate-fade-in">
       {/* Hero Banner */}
-      <div className="novel-banner relative h-[60vh] min-h-[400px]">
+      <div className="relative h-[72vh] md:h-[60vh] min-h-[420px] md:min-h-[400px]">
         {novel.coverImageUrl ? (
           <img src={novel.coverImageUrl} alt="" className="w-full h-full object-cover" />
         ) : (
@@ -99,7 +99,7 @@ export default function NovelDetailPage() {
         </button>
 
         {/* Novel Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6">
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
           <div className="flex gap-2 mb-3 flex-wrap">
             {novel.genreTags.map(g => (
               <span
@@ -111,11 +111,11 @@ export default function NovelDetailPage() {
               </span>
             ))}
           </div>
-          <h1 className="novel-title font-display text-4xl font-bold text-white mb-2">{novel.title}</h1>
+          <h1 className="font-display text-2xl sm:text-4xl font-bold text-white mb-2">{novel.title}</h1>
           <p className="text-white/70 mb-4">by {novel.authorName}</p>
 
           {/* Stats Row */}
-          <div className="novel-stats-row flex flex-wrap items-center gap-4 text-sm text-white/70 mb-5">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm text-white/70 mb-5">
             <span className="flex items-center gap-1">
               <Star size={14} className="fill-gold text-gold" />
               <strong className="text-white">{novel.ratingAvg}</strong> ({novel.ratingCount})
@@ -127,13 +127,13 @@ export default function NovelDetailPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="novel-actions flex items-center gap-3 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {progress ? (
-              <button onClick={handleContinueReading} className="novel-action-btn px-8 py-3 btn btn-primary rounded-full font-semibold">
+              <button onClick={handleContinueReading} className="px-6 sm:px-8 py-2.5 sm:py-3 btn btn-primary rounded-full font-semibold">
                 Continue Reading
               </button>
             ) : (
-              <button onClick={handleStartReading} className="novel-action-btn px-8 py-3 btn btn-primary rounded-full font-semibold">
+              <button onClick={handleStartReading} className="px-6 sm:px-8 py-2.5 sm:py-3 btn btn-primary rounded-full font-semibold">
                 Start Reading
               </button>
             )}
@@ -195,13 +195,13 @@ export default function NovelDetailPage() {
       </div>
 
       {/* Synopsis */}
-      <div className="px-6 py-6">
+      <div className="px-4 sm:px-6 py-6">
         <h3 className="font-semibold text-lg mb-3">Synopsis</h3>
         <p className="text-text-secondary leading-relaxed">{novel.synopsis}</p>
       </div>
 
       {/* Chapter Index */}
-      <div className="chapter-list px-6 mb-8">
+      <div className="px-4 sm:px-6 mb-8">
         <h3 className="font-semibold text-lg mb-4">Table of Contents</h3>
         <div className="space-y-2">
           {novel.volumes.map(volume => (
@@ -220,7 +220,7 @@ export default function NovelDetailPage() {
                     <button
                       key={chapter.id}
                       onClick={() => navigate(`/read/${novel.id}/${chapter.id}`)}
-                      className="w-full flex items-center justify-between px-6 py-3 text-left hover:bg-bg-tertiary/30 transition-colors border-b border-divider/50 last:border-none"
+                      className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 px-4 sm:px-6 py-3 text-left hover:bg-bg-tertiary/30 transition-colors border-b border-divider/50 last:border-none"
                     >
                       <span className="text-sm text-text-primary">{chapter.title}</span>
                       <span className="text-xs text-text-secondary">{chapter.wordCount.toLocaleString()} words</span>
@@ -234,7 +234,7 @@ export default function NovelDetailPage() {
       </div>
 
       {/* Reviews */}
-      <div className="px-6">
+      <div className="px-4 sm:px-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-lg flex items-center gap-2">
             <MessageCircle size={20} /> Reviews ({novelReviews.length})

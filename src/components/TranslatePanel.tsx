@@ -113,9 +113,9 @@ export default function TranslatePanel({ isOpen, onClose, content }: TranslatePa
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
       <div
-        className="modal-card w-full max-w-xl max-h-[80vh] flex flex-col rounded-2xl overflow-hidden animate-scale-in"
+        className="w-full max-w-xl max-h-[80vh] flex flex-col rounded-2xl overflow-hidden animate-scale-in"
         style={{
           background: 'linear-gradient(180deg, #141414 0%, #1a1a1a 100%)',
           border: '1px solid rgba(255,255,255,0.1)',
@@ -123,7 +123,6 @@ export default function TranslatePanel({ isOpen, onClose, content }: TranslatePa
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="modal-handle hidden" />
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-white/10">
           <div className="flex items-center gap-2">

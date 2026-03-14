@@ -74,9 +74,9 @@ export default function LibraryPage() {
   ];
 
   return (
-    <div className="min-h-screen p-6 animate-fade-in">
+    <div className="min-h-screen p-4 sm:p-5 md:p-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <h1 className="font-display text-3xl font-bold">Your Library</h1>
         <button
           onClick={() => setShowNewNovelModal(true)}
@@ -87,8 +87,8 @@ export default function LibraryPage() {
       </div>
 
       {/* Filters + View Toggle */}
-      <div className="flex items-center justify-between mb-6 gap-3">
-        <div className="filter-tabs flex gap-2 overflow-x-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex gap-2">
           {filters.map(f => (
             <button
               key={f.key}
@@ -132,7 +132,7 @@ export default function LibraryPage() {
           </button>
         </div>
       ) : view === 'grid' ? (
-        <div className="library-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
           {filtered.map(novel => (
             <div key={novel.id} className="group relative">
               <button
@@ -161,8 +161,8 @@ export default function LibraryPage() {
                     {upcomingNovelIds.includes(novel.id) ? 'Upcoming' : (novel.status.charAt(0).toUpperCase() + novel.status.slice(1))}
                   </span>
                 </div>
-                <p className="font-medium text-sm text-text-primary line-clamp-2 mb-1 leading-snug">{novel.title}</p>
-                <p className="text-text-secondary text-xs leading-snug">
+                <p className="font-medium text-sm text-text-primary line-clamp-2 mb-1">{novel.title}</p>
+                <p className="text-text-secondary text-xs">
                   {novel.volumes.length} vol · {novel.volumes.reduce((s, v) => s + v.chapters.length, 0)} ch · {novel.totalWords.toLocaleString()} words
                 </p>
                 {novel.status === 'published' && (
@@ -242,19 +242,10 @@ export default function LibraryPage() {
         </div>
       )}
 
-      <button
-        onClick={() => setShowNewNovelModal(true)}
-        className="new-novel-fab hidden bg-accent text-white shadow-[0_4px_20px_rgba(226,74,74,0.4)]"
-        aria-label="Create new novel"
-      >
-        <Plus size={24} />
-      </button>
-
       {/* New Novel Modal */}
       {showNewNovelModal && (
-        <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowNewNovelModal(false)}>
-          <div className="modal-card glass-card p-8 max-w-md w-full animate-scale-in" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-handle hidden" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowNewNovelModal(false)}>
+          <div className="glass-card p-5 sm:p-8 max-w-md w-full animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display text-2xl font-bold mb-6">Create New Novel</h2>
             <input
               type="text"

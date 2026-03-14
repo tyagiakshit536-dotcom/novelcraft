@@ -14,7 +14,7 @@ function NfCard({ novel, badge }: { novel: Novel; badge?: 'trending' }) {
   return (
     <button
       onClick={() => navigate(`/novel/${novel.id}`)}
-      className="w-[255px] sm:w-[300px] lg:w-[345px] min-w-[255px] sm:min-w-[300px] lg:min-w-[345px] shrink-0 group relative cursor-pointer"
+      className="w-[210px] sm:w-[300px] lg:w-[345px] min-w-[210px] sm:min-w-[300px] lg:min-w-[345px] shrink-0 group relative cursor-pointer"
     >
       <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-bg-tertiary relative glass-card-hover transition-transform duration-300 hover:scale-105 border-[3px] border-white/30">
         {novel.coverImageUrl ? (
@@ -76,7 +76,7 @@ function PlaylistRow({ playlists, novels }: { playlists: NovelPlaylist[]; novels
               <button
                 key={pl.id}
                 onClick={() => navigate('/home')}
-                className="min-w-[260px] sm:min-w-[300px] rounded-2xl overflow-hidden glass-card text-left hover:scale-[1.01] transition-transform"
+                className="min-w-[220px] sm:min-w-[300px] rounded-2xl overflow-hidden glass-card text-left hover:scale-[1.01] transition-transform"
               >
                 <div className="h-40 relative" style={{ background: `linear-gradient(135deg, ${pl.color}, rgba(26,14,14,0.9))` }}>
                   {cover && <img src={cover} alt="" className="w-full h-full object-cover opacity-55" loading="lazy" />}
@@ -212,7 +212,7 @@ function TopAuthorsRow({ novels }: { novels: Novel[] }) {
 /* ─── Mini Stat Card ─── */
 function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
   return (
-    <div className="glass-card p-4 flex items-center gap-3 min-w-[200px]">
+    <div className="glass-card p-4 flex items-center gap-3 min-w-[170px] sm:min-w-[200px]">
       <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: color + '20' }}>
         <span style={{ color }}>{icon}</span>
       </div>
@@ -221,51 +221,6 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
         <p className="text-gray-400 text-xs">{label}</p>
       </div>
     </div>
-  );
-}
-
-function QuickStatsRow({
-  totalReads,
-  totalNovels,
-  avgRating,
-  totalWords,
-  authorCount,
-}: {
-  totalReads: number;
-  totalNovels: number;
-  avgRating: string;
-  totalWords: number;
-  authorCount: number;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scroll = (dir: number) => {
-    scrollRef.current?.scrollBy({ left: dir * 260, behavior: 'smooth' });
-  };
-
-  return (
-    <section className="px-4 lg:px-12 mb-8 group/row relative">
-      <button
-        onClick={() => scroll(-1)}
-        className="lg:hidden absolute left-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-r from-bg-primary to-transparent flex items-center justify-center"
-        aria-label="Scroll stats left"
-      >
-        <ChevronLeft size={22} className="text-white" />
-      </button>
-      <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-        <StatCard icon={<Eye size={18} />} label="Total Reads" value={totalReads > 1000 ? (totalReads / 1000).toFixed(0) + 'k' : String(totalReads)} color="#E24A4A" />
-        <StatCard icon={<BookOpen size={18} />} label="Novels" value={String(totalNovels)} color="#F06B6B" />
-        <StatCard icon={<Star size={18} />} label="Avg Rating" value={avgRating} color="#E2B04A" />
-        <StatCard icon={<TrendingUp size={18} />} label="Total Words" value={totalWords > 1000000 ? (totalWords / 1000000).toFixed(1) + 'M' : (totalWords / 1000).toFixed(0) + 'k'} color="#C73636" />
-        <StatCard icon={<Users size={18} />} label="Authors" value={String(authorCount)} color="#FF8A6B" />
-      </div>
-      <button
-        onClick={() => scroll(1)}
-        className="lg:hidden absolute right-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-l from-bg-primary to-transparent flex items-center justify-center"
-        aria-label="Scroll stats right"
-      >
-        <ChevronR size={22} className="text-white" />
-      </button>
-    </section>
   );
 }
 
@@ -322,7 +277,7 @@ export default function HomePage() {
     <div className="min-h-[200vh] pb-20 animate-fade-in">
       {/* ─── Netflix Billboard Hero ─── */}
       {heroNovel && (
-        <section className="relative h-[80vh] min-h-[500px] max-h-[800px] mb-4">
+        <section className="relative h-[72vh] sm:h-[80vh] min-h-[420px] sm:min-h-[500px] max-h-[800px] mb-4">
           {heroBanners.map((novel, i) => (
             <div key={novel.id} className={`absolute inset-0 transition-all duration-1000 ${i === heroIndex ? 'opacity-100' : 'opacity-0'}`}>
               {novel.coverImageUrl ? (
@@ -338,31 +293,31 @@ export default function HomePage() {
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#1A0E0E] to-transparent" />
 
           {/* Content */}
-          <div className="absolute bottom-[15%] left-4 lg:left-12 max-w-xl z-10">
+          <div className="absolute bottom-[13%] left-4 right-4 sm:right-auto lg:left-12 max-w-xl z-10">
             <div className="flex gap-2 mb-3">
               {heroNovel.genreTags.map(g => (
                 <span key={g} className="text-[11px] px-2 py-0.5 rounded bg-white/10 text-white/80">{g}</span>
               ))}
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-3 leading-tight" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif', letterSpacing: '0.02em' }}>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white mb-3 leading-tight" style={{ fontFamily: '"Bebas Neue", Inter, sans-serif', letterSpacing: '0.02em' }}>
               {heroNovel.title}
             </h1>
             <p className="text-gray-300 text-sm mb-1">by {heroNovel.authorName}</p>
             <p className="text-gray-400 text-sm mb-5 line-clamp-2">{heroNovel.synopsis}</p>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <button
                 onClick={() => {
                   const ch = heroNovel.volumes[0]?.chapters[0];
                   if (ch) navigate(`/read/${heroNovel.id}/${ch.id}`);
                   else navigate(`/novel/${heroNovel.id}`);
                 }}
-                className="flex items-center gap-2 px-6 py-2.5 bg-white text-black font-bold text-sm rounded hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-2 px-4 sm:px-6 py-2.5 bg-white text-black font-bold text-sm rounded hover:bg-gray-200 transition-colors"
               >
                 <Play size={18} fill="black" /> Read Now
               </button>
               <button
                 onClick={() => navigate(`/novel/${heroNovel.id}`)}
-                className="flex items-center gap-2 px-6 py-2.5 bg-white/20 text-white font-semibold text-sm rounded hover:bg-white/30 transition-colors backdrop-blur"
+                className="flex items-center gap-2 px-4 sm:px-6 py-2.5 bg-white/20 text-white font-semibold text-sm rounded hover:bg-white/30 transition-colors backdrop-blur"
               >
                 <Info size={18} /> More Info
               </button>
@@ -384,13 +339,15 @@ export default function HomePage() {
       )}
 
       {/* ─── Quick Stats Bar ─── */}
-      <QuickStatsRow
-        totalReads={totalReads}
-        totalNovels={totalNovels}
-        avgRating={avgRating}
-        totalWords={totalWords}
-        authorCount={new Set(visibleNovels.map(n => n.authorName)).size}
-      />
+      <section className="px-4 lg:px-12 mb-8">
+        <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+          <StatCard icon={<Eye size={18} />} label="Total Reads" value={totalReads > 1000 ? (totalReads / 1000).toFixed(0) + 'k' : String(totalReads)} color="#E24A4A" />
+          <StatCard icon={<BookOpen size={18} />} label="Novels" value={String(totalNovels)} color="#F06B6B" />
+          <StatCard icon={<Star size={18} />} label="Avg Rating" value={avgRating} color="#E2B04A" />
+          <StatCard icon={<TrendingUp size={18} />} label="Total Words" value={totalWords > 1000000 ? (totalWords / 1000000).toFixed(1) + 'M' : (totalWords / 1000).toFixed(0) + 'k'} color="#C73636" />
+          <StatCard icon={<Users size={18} />} label="Authors" value={String(new Set(visibleNovels.map(n => n.authorName)).size)} color="#FF8A6B" />
+        </div>
+      </section>
 
       {/* ─── Top Authors (Spotify-style Circles) ─── */}
       <TopAuthorsRow novels={visibleNovels} />

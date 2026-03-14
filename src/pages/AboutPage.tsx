@@ -87,7 +87,7 @@ function TeamCard({ name, avatar, alt, roles, bio, social, glowColor }: {
         src={avatar}
         alt={alt}
         loading="lazy"
-        className="team-avatar w-[120px] h-[120px] rounded-full object-cover mb-5"
+        className="w-[120px] h-[120px] rounded-full object-cover mb-5"
         style={{ border: `2px solid ${glowColor}`, boxShadow: `0 0 24px ${glowColor}40` }}
       />
       <h3 className="font-display text-xl font-bold text-text-primary mb-3">{name}</h3>
@@ -125,7 +125,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen pb-16 animate-fade-in">
       {/* ─── HERO BANNER ─── */}
-      <section className="about-hero relative overflow-hidden py-20 px-6 text-center" style={{
+      <section className="relative overflow-hidden py-14 md:py-20 px-4 sm:px-6 text-center" style={{
         background: 'radial-gradient(ellipse at 50% 20%, rgba(226,74,74,0.12) 0%, #231313 50%, #1A0E0E 100%)',
       }}>
         <Section>
@@ -133,7 +133,7 @@ export default function AboutPage() {
             <div className="flex justify-center mb-6">
               <NovelCraftLogo size="large" showWordmark={false} />
             </div>
-            <h1 className="font-display text-5xl md:text-6xl font-bold text-text-primary mb-4">
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-text-primary mb-4">
               About <span className="text-accent">NovelCraft</span>
             </h1>
             <p className="text-gold text-lg font-semibold mb-3" style={{ fontFamily: '"Inter", sans-serif' }}>
@@ -203,7 +203,7 @@ export default function AboutPage() {
 
         {/* ─── STATS ROW ─── */}
         <section className="pb-16">
-          <div className="about-stats grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { emoji: '🚀', value: '1', label: 'Product Launched' },
               { emoji: '✍️', value: '∞', label: 'Words Written by Our Community' },
@@ -225,7 +225,7 @@ export default function AboutPage() {
         <Section className="pb-16">
           <h2 className="font-display text-3xl font-bold text-text-primary mb-2 text-center">Meet the Team</h2>
           <p className="text-text-secondary text-center mb-10">A small team with a big vision.</p>
-          <div className="team-grid grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <Section delay={0}>
               <TeamCard
                 name="Akshit Tyagi"
