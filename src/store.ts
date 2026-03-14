@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, Novel, Volume, Chapter, ReadingProgress, Review, Comment, ReadingListItem, Notification, CharacterEntry, WorldEntry, VisualDNA, NovelCharacterImage, SiteLanguage, ProfileMode, NovelPlaylist } from './types';
 import { supabase } from './lib/supabase';
+import type { Provider } from '@supabase/supabase-js';
 import {
   authService, profileService, novelService, volumeService, chapterService,
   readingProgressService, readingListService, reviewService, commentService,
@@ -191,6 +192,7 @@ interface AppState {
   initAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, username: string, displayName: string) => Promise<void>;
+  loginWithOAuth: (provider: Provider) => Promise<void>;
   logout: () => Promise<void>;
   loadUserData: (userId: string) => Promise<void>;
   completeOnboarding: () => void;
@@ -429,6 +431,10 @@ export const useStore = create<AppState>()(
         if (!profile) throw new Error('Profile creation failed. Please try logging in.');
         set({ isAuthenticated: true, currentUser: profile });
         get().loadUserData(session.user.id);
+      },
+
+      loginWithOAuth: async (provider: Provider) => {
+        await authService.signInWithOAuth(provider);
       },
 
       logout: async () => {

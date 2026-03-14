@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+:root {
+  --desktop-scale: 1;
+  --desktop-width: 1366px;
+  --desktop-height: 768px;
+}
+
 @theme {
   --color-bg-primary: #1A0E0E;
   --color-bg-secondary: #231313;
@@ -132,7 +138,46 @@
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; }
 ::selection { background-color: rgba(226, 74, 74, 0.3); color: var(--color-text-primary); }
-body { font-family: var(--font-ui); overflow-x: hidden; }
+body { font-family: var(--font-ui); }
+
+@media (max-width: 1024px) {
+  * {
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
+
+html.desktop-like-mode,
+body.desktop-like-mode {
+  width: 100%;
+  min-width: var(--desktop-width);
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+#root.desktop-like-root {
+  width: calc(var(--desktop-width) * var(--desktop-scale));
+  min-height: calc(var(--desktop-height) * var(--desktop-scale));
+}
+
+#desktop-canvas-shell {
+  position: relative;
+  width: calc(var(--desktop-width) * var(--desktop-scale));
+  min-height: calc(var(--desktop-height) * var(--desktop-scale));
+  overflow: hidden;
+}
+
+#desktop-canvas {
+  width: var(--desktop-width);
+  min-height: var(--desktop-height);
+  transform-origin: top left;
+  overflow: hidden;
+}
 
 /* TipTap */
 .tiptap { outline: none; min-height: 100%; font-family: var(--font-editor); font-size: 16px; line-height: 1.8; letter-spacing: 0.02em; color: var(--color-text-primary); }

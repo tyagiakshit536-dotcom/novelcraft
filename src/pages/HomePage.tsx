@@ -224,6 +224,51 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
   );
 }
 
+function QuickStatsRow({
+  totalReads,
+  totalNovels,
+  avgRating,
+  totalWords,
+  authorCount,
+}: {
+  totalReads: number;
+  totalNovels: number;
+  avgRating: string;
+  totalWords: number;
+  authorCount: number;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scroll = (dir: number) => {
+    scrollRef.current?.scrollBy({ left: dir * 260, behavior: 'smooth' });
+  };
+
+  return (
+    <section className="px-4 lg:px-12 mb-8 group/row relative">
+      <button
+        onClick={() => scroll(-1)}
+        className="lg:hidden absolute left-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-r from-bg-primary to-transparent flex items-center justify-center"
+        aria-label="Scroll stats left"
+      >
+        <ChevronLeft size={22} className="text-white" />
+      </button>
+      <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+        <StatCard icon={<Eye size={18} />} label="Total Reads" value={totalReads > 1000 ? (totalReads / 1000).toFixed(0) + 'k' : String(totalReads)} color="#E24A4A" />
+        <StatCard icon={<BookOpen size={18} />} label="Novels" value={String(totalNovels)} color="#F06B6B" />
+        <StatCard icon={<Star size={18} />} label="Avg Rating" value={avgRating} color="#E2B04A" />
+        <StatCard icon={<TrendingUp size={18} />} label="Total Words" value={totalWords > 1000000 ? (totalWords / 1000000).toFixed(1) + 'M' : (totalWords / 1000).toFixed(0) + 'k'} color="#C73636" />
+        <StatCard icon={<Users size={18} />} label="Authors" value={String(authorCount)} color="#FF8A6B" />
+      </div>
+      <button
+        onClick={() => scroll(1)}
+        className="lg:hidden absolute right-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-l from-bg-primary to-transparent flex items-center justify-center"
+        aria-label="Scroll stats right"
+      >
+        <ChevronR size={22} className="text-white" />
+      </button>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const { novels, userNovels, readingProgress, currentUser, playlists, upcomingNovelIds } = useStore();
   const navigate = useNavigate();
@@ -339,15 +384,13 @@ export default function HomePage() {
       )}
 
       {/* ─── Quick Stats Bar ─── */}
-      <section className="px-4 lg:px-12 mb-8">
-        <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-          <StatCard icon={<Eye size={18} />} label="Total Reads" value={totalReads > 1000 ? (totalReads / 1000).toFixed(0) + 'k' : String(totalReads)} color="#E24A4A" />
-          <StatCard icon={<BookOpen size={18} />} label="Novels" value={String(totalNovels)} color="#F06B6B" />
-          <StatCard icon={<Star size={18} />} label="Avg Rating" value={avgRating} color="#E2B04A" />
-          <StatCard icon={<TrendingUp size={18} />} label="Total Words" value={totalWords > 1000000 ? (totalWords / 1000000).toFixed(1) + 'M' : (totalWords / 1000).toFixed(0) + 'k'} color="#C73636" />
-          <StatCard icon={<Users size={18} />} label="Authors" value={String(new Set(visibleNovels.map(n => n.authorName)).size)} color="#FF8A6B" />
-        </div>
-      </section>
+      <QuickStatsRow
+        totalReads={totalReads}
+        totalNovels={totalNovels}
+        avgRating={avgRating}
+        totalWords={totalWords}
+        authorCount={new Set(visibleNovels.map(n => n.authorName)).size}
+      />
 
       {/* ─── Top Authors (Spotify-style Circles) ─── */}
       <TopAuthorsRow novels={visibleNovels} />

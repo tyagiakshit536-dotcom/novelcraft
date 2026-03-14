@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Loader2 } from 'lucide-react';
+import type { Provider } from '@supabase/supabase-js';
 import { useStore } from '../store';
 
 type AuthMode = 'login' | 'signup' | 'confirm-email';
@@ -10,7 +11,13 @@ export default function AuthScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login, signup, completeOnboarding } = useStore();
+  const { login, signup, loginWithOAuth, completeOnboarding } = useStore();
+
+  const parseProvider = (value: unknown): Provider | null => {
+    const provider = typeof value === 'string' ? value.toLowerCase().trim() : '';
+    const supportedProviders: Provider[] = ['google', 'github', 'twitter'];
+    return supportedProviders.includes(provider as Provider) ? (provider as Provider) : null;
+  };
 
   React.useEffect(() => {
     const handleMessage = async (e: MessageEvent) => {
@@ -60,12 +67,27 @@ export default function AuthScreen() {
         } finally {
           setLoading(false);
         }
+      } else if (e.data?.type === 'auth-oauth') {
+        const provider = parseProvider(e.data?.payload?.provider);
+        if (!provider) {
+          setError('Unsupported sign-in provider.');
+          return;
+        }
+
+        setLoading(true);
+        setError('');
+        try {
+          await loginWithOAuth(provider);
+        } catch (err: unknown) {
+          setLoading(false);
+          setError(err instanceof Error ? err.message : 'Social login failed. Please try again.');
+        }
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [login, signup, completeOnboarding]);
+  }, [login, signup, loginWithOAuth, completeOnboarding]);
 
   if (mode === 'confirm-email') {
     return (
