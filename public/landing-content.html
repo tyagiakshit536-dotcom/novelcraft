@@ -1155,15 +1155,17 @@
         }
 
         .content {
-            margin-top: 25rem;
-            max-width: 30rem;
-            margin-left: 5%;
+            margin-top: 2rem;
+            max-width: 100%;
+            margin-left: 0;
+            text-align: center;
+            padding: 0 16px;
         }
 
         .robot-hero {
             position: relative;
             width: 100%;
-            height: 450px;
+            height: 280px;
             right: auto;
             top: auto;
             margin: 0 auto 2rem;
@@ -1187,11 +1189,25 @@
         }
 
         .content h1 {
-            font-size: 2.5rem;
+            font-size: clamp(28px, 8vw, 56px);
         }
 
         .description {
-            font-size: 1rem;
+            font-size: 14px;
+        }
+
+        .buttons {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-top: 2rem;
+        }
+
+        .btn-get-started,
+        .btn-signing-main {
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
         }
 
         .btn-get-started {
@@ -1205,7 +1221,8 @@
         }
 
         .stats-grid {
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
         }
 
         .stat-item:not(:last-child)::after {
@@ -1239,6 +1256,20 @@
         .footer-bottom {
             flex-direction: column;
             text-align: center;
+        }
+
+        .feature-block {
+            padding: 32px 16px;
+        }
+
+        .craft-section,
+        .stats-section,
+        .testimonials-section,
+        .cta-section,
+        .how-section,
+        .editorial-section {
+            padding-left: 16px;
+            padding-right: 16px;
         }
     }
     </style>

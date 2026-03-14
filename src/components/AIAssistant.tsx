@@ -75,12 +75,13 @@ export default function AIAssistant({ isOpen, onClose }: { isOpen: boolean; onCl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl h-[85vh] flex flex-col rounded-2xl overflow-hidden animate-scale-in" style={{
+    <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="modal-card w-full max-w-2xl h-[85vh] flex flex-col rounded-2xl overflow-hidden animate-scale-in" style={{
         background: 'linear-gradient(180deg, #141414 0%, #1a1a1a 100%)',
         border: '1px solid rgba(229, 9, 20, 0.2)',
         boxShadow: '0 0 60px rgba(229, 9, 20, 0.1)',
       }}>
+        <div className="modal-handle hidden" />
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-white/10">
           <div className="flex items-center gap-3">

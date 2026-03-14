@@ -40,8 +40,9 @@ export default function TutorialOverlay({ onFinish, onSkip }: TutorialOverlayPro
   const step = steps[index];
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl rounded-3xl border border-accent/30 bg-bg-secondary/95 p-6 md:p-8 animate-scale-in relative overflow-hidden">
+    <div className="modal-overlay fixed inset-0 z-[70] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="modal-card w-full max-w-2xl rounded-3xl border border-accent/30 bg-bg-secondary/95 p-6 md:p-8 animate-scale-in relative overflow-hidden">
+        <div className="modal-handle hidden" />
         <div className="absolute -top-20 -right-16 w-64 h-64 rounded-full bg-accent/15 blur-3xl" />
         <div className="absolute -bottom-20 -left-16 w-64 h-64 rounded-full bg-gold/10 blur-3xl" />
 

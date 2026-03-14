@@ -80,7 +80,7 @@ export default function NovelDetailPage() {
   return (
     <div className="min-h-screen pb-12 animate-fade-in">
       {/* Hero Banner */}
-      <div className="relative h-[60vh] min-h-[400px]">
+      <div className="novel-banner relative h-[60vh] min-h-[400px]">
         {novel.coverImageUrl ? (
           <img src={novel.coverImageUrl} alt="" className="w-full h-full object-cover" />
         ) : (
@@ -111,11 +111,11 @@ export default function NovelDetailPage() {
               </span>
             ))}
           </div>
-          <h1 className="font-display text-4xl font-bold text-white mb-2">{novel.title}</h1>
+          <h1 className="novel-title font-display text-4xl font-bold text-white mb-2">{novel.title}</h1>
           <p className="text-white/70 mb-4">by {novel.authorName}</p>
 
           {/* Stats Row */}
-          <div className="flex items-center gap-6 text-sm text-white/70 mb-5">
+          <div className="novel-stats-row flex flex-wrap items-center gap-4 text-sm text-white/70 mb-5">
             <span className="flex items-center gap-1">
               <Star size={14} className="fill-gold text-gold" />
               <strong className="text-white">{novel.ratingAvg}</strong> ({novel.ratingCount})
@@ -127,13 +127,13 @@ export default function NovelDetailPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="novel-actions flex items-center gap-3 flex-wrap">
             {progress ? (
-              <button onClick={handleContinueReading} className="px-8 py-3 btn btn-primary rounded-full font-semibold">
+              <button onClick={handleContinueReading} className="novel-action-btn px-8 py-3 btn btn-primary rounded-full font-semibold">
                 Continue Reading
               </button>
             ) : (
-              <button onClick={handleStartReading} className="px-8 py-3 btn btn-primary rounded-full font-semibold">
+              <button onClick={handleStartReading} className="novel-action-btn px-8 py-3 btn btn-primary rounded-full font-semibold">
                 Start Reading
               </button>
             )}
@@ -201,7 +201,7 @@ export default function NovelDetailPage() {
       </div>
 
       {/* Chapter Index */}
-      <div className="px-6 mb-8">
+      <div className="chapter-list px-6 mb-8">
         <h3 className="font-semibold text-lg mb-4">Table of Contents</h3>
         <div className="space-y-2">
           {novel.volumes.map(volume => (

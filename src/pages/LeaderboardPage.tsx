@@ -29,7 +29,7 @@ export default function LeaderboardPage() {
               <button
                 key={novel.id}
                 onClick={() => navigate(`/novel/${novel.id}`)}
-                className="w-full flex items-center gap-3 p-3 glass-card glass-card-hover text-left"
+                className="leaderboard-row w-full grid grid-cols-[40px_40px_1fr_80px] items-center gap-3 p-3 glass-card glass-card-hover text-left"
               >
                 <span className="w-8 text-center text-lg shrink-0">
                   {medals[i] || <span className="text-text-secondary text-sm font-bold">{i + 1}</span>}
@@ -63,7 +63,7 @@ export default function LeaderboardPage() {
               <button
                 key={novel.id}
                 onClick={() => navigate(`/novel/${novel.id}`)}
-                className="w-full flex items-center gap-3 p-3 glass-card glass-card-hover text-left"
+                className="leaderboard-row w-full grid grid-cols-[40px_40px_1fr_80px] items-center gap-3 p-3 glass-card glass-card-hover text-left"
               >
                 <span className="w-8 text-center text-lg shrink-0">
                   {medals[i] || <span className="text-text-secondary text-sm font-bold">{i + 1}</span>}

@@ -14,7 +14,7 @@ function NfCard({ novel, badge }: { novel: Novel; badge?: 'trending' }) {
   return (
     <button
       onClick={() => navigate(`/novel/${novel.id}`)}
-      className="w-[255px] sm:w-[300px] lg:w-[345px] min-w-[255px] sm:min-w-[300px] lg:min-w-[345px] shrink-0 group relative cursor-pointer"
+      className="novel-card w-[255px] sm:w-[300px] lg:w-[345px] min-w-[255px] sm:min-w-[300px] lg:min-w-[345px] shrink-0 group relative cursor-pointer"
     >
       <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-bg-tertiary relative glass-card-hover transition-transform duration-300 hover:scale-105 border-[3px] border-white/30">
         {novel.coverImageUrl ? (
@@ -62,14 +62,14 @@ function PlaylistRow({ playlists, novels }: { playlists: NovelPlaylist[]; novels
 
   return (
     <section className="mb-10 group/row relative">
-      <h2 className="text-base sm:text-lg font-semibold px-4 lg:px-12 mb-4 flex items-center gap-2 text-white">
+      <h2 className="section-heading text-base sm:text-lg font-semibold px-4 lg:px-12 mb-4 flex items-center gap-2 text-white">
         <Music2 size={18} className="text-gold" /> Novel Playlists
       </h2>
       <div className="relative">
         <button onClick={() => scroll(-1)} className="absolute left-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-r from-bg-primary to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity flex items-center justify-center">
           <ChevronLeft size={24} className="text-white" />
         </button>
-        <div ref={scrollRef} className="flex gap-3 overflow-x-auto px-4 lg:px-12 pb-2" style={{ scrollbarWidth: 'none' }}>
+        <div ref={scrollRef} className="horizontal-scroll shelf-container flex gap-3 overflow-x-auto px-4 lg:px-12 pb-2" style={{ scrollbarWidth: 'none' }}>
           {playlists.map((pl) => {
             const cover = novels.find(n => n.id === pl.coverNovelId)?.coverImageUrl;
             return (
@@ -108,14 +108,14 @@ function CategoryRow({ title, novels, icon, badge }: { title: string; novels: No
   };
   return (
     <section className="mb-10 group/row relative">
-      <h2 className="text-base sm:text-lg font-semibold px-4 lg:px-12 mb-3 flex items-center gap-2 text-white">
+      <h2 className="section-heading text-base sm:text-lg font-semibold px-4 lg:px-12 mb-3 flex items-center gap-2 text-white">
         {icon} {title}
       </h2>
       <div className="relative">
         <button onClick={() => scroll(-1)} className="absolute left-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-r from-bg-primary to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity flex items-center justify-center">
           <ChevronLeft size={24} className="text-white" />
         </button>
-        <div ref={scrollRef} className="flex gap-2 sm:gap-3 overflow-x-auto px-4 lg:px-12 pb-2" style={{ scrollbarWidth: 'none' }}>
+        <div ref={scrollRef} className="horizontal-scroll shelf-container flex gap-2 sm:gap-3 overflow-x-auto px-4 lg:px-12 pb-2" style={{ scrollbarWidth: 'none' }}>
           {novels.map(novel => <NfCard key={novel.id} novel={novel} badge={badge} />)}
         </div>
         <button onClick={() => scroll(1)} className="absolute right-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-l from-bg-primary to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity flex items-center justify-center">
@@ -153,14 +153,14 @@ function TopAuthorsRow({ novels }: { novels: Novel[] }) {
 
   return (
     <section className="mb-10 group/row relative">
-      <h2 className="text-base sm:text-lg font-semibold px-4 lg:px-12 mb-4 flex items-center gap-2 text-white">
+      <h2 className="section-heading text-base sm:text-lg font-semibold px-4 lg:px-12 mb-4 flex items-center gap-2 text-white">
         <Users size={18} className="text-accent" /> Top Authors
       </h2>
       <div className="relative">
         <button onClick={() => scroll(-1)} className="absolute left-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-r from-bg-primary to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity flex items-center justify-center">
           <ChevronLeft size={24} className="text-white" />
         </button>
-        <div ref={scrollRef} className="flex gap-5 overflow-x-auto px-4 lg:px-12 pb-2" style={{ scrollbarWidth: 'none' }}>
+        <div ref={scrollRef} className="horizontal-scroll shelf-container flex gap-5 overflow-x-auto px-4 lg:px-12 pb-2" style={{ scrollbarWidth: 'none' }}>
           {authors.map((author, i) => (
             <button
               key={author.name}
@@ -169,7 +169,7 @@ function TopAuthorsRow({ novels }: { novels: Novel[] }) {
             >
               <div className="relative">
                 <div
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-[3px] transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
+                  className="w-14 h-14 sm:w-24 sm:h-24 rounded-full overflow-hidden border-[3px] transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
                   style={{
                     borderColor: i === 0 ? '#E24A4A' : i < 3 ? '#E2B04A' : 'rgba(255,240,240,0.24)',
                     boxShadow: i === 0 ? '0 0 20px rgba(226,74,74,0.4)' : i < 3 ? '0 0 15px rgba(226,176,74,0.3)' : 'none',
@@ -195,7 +195,7 @@ function TopAuthorsRow({ novels }: { novels: Novel[] }) {
                 )}
               </div>
               <div className="text-center max-w-[96px]">
-                <p className="text-xs font-medium text-white truncate group-hover:text-accent transition-colors">{author.name}</p>
+                <p className="text-[11px] font-medium text-white truncate group-hover:text-accent transition-colors">{author.name}</p>
                 <p className="text-[10px] text-gray-500">{author.novelCount} novel{author.novelCount > 1 ? 's' : ''}</p>
               </div>
             </button>
@@ -277,7 +277,7 @@ export default function HomePage() {
     <div className="min-h-[200vh] pb-20 animate-fade-in">
       {/* ─── Netflix Billboard Hero ─── */}
       {heroNovel && (
-        <section className="relative h-[80vh] min-h-[500px] max-h-[800px] mb-4">
+        <section className="hero-carousel relative h-[80vh] min-h-[500px] max-h-[800px] mb-4">
           {heroBanners.map((novel, i) => (
             <div key={novel.id} className={`absolute inset-0 transition-all duration-1000 ${i === heroIndex ? 'opacity-100' : 'opacity-0'}`}>
               {novel.coverImageUrl ? (
@@ -340,7 +340,7 @@ export default function HomePage() {
 
       {/* ─── Quick Stats Bar ─── */}
       <section className="px-4 lg:px-12 mb-8">
-        <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+        <div className="stats-row flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
           <StatCard icon={<Eye size={18} />} label="Total Reads" value={totalReads > 1000 ? (totalReads / 1000).toFixed(0) + 'k' : String(totalReads)} color="#E24A4A" />
           <StatCard icon={<BookOpen size={18} />} label="Novels" value={String(totalNovels)} color="#F06B6B" />
           <StatCard icon={<Star size={18} />} label="Avg Rating" value={avgRating} color="#E2B04A" />
