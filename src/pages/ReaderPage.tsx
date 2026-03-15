@@ -69,6 +69,7 @@ export default function ReaderPage() {
   const music = useBackgroundMusic();
 
   const novel = [...store.novels, ...store.userNovels].find(n => n.id === novelId);
+  const isPrimitive = novel?.mode === 'primitive';
   const allChapters = novel ? novel.volumes.flatMap(v => v.chapters) : [];
   const currentChapter = allChapters.find(c => c.id === chapterId);
   const currentIndex = allChapters.findIndex(c => c.id === chapterId);
@@ -131,9 +132,11 @@ export default function ReaderPage() {
           <ArrowLeft size={18} />
         </button>
         <div className="w-px h-6 bg-divider mx-1" />
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${sidebarOpen ? 'bg-accent/15 text-accent' : 'hover:bg-bg-tertiary text-text-secondary hover:text-text-primary'}`}>
-          <PanelLeft size={18} />
-        </button>
+        {!isPrimitive && (
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${sidebarOpen ? 'bg-accent/15 text-accent' : 'hover:bg-bg-tertiary text-text-secondary hover:text-text-primary'}`}>
+            <PanelLeft size={18} />
+          </button>
+        )}
         <div className="w-px h-6 bg-divider mx-1" />
 
         {/* Drawing Tools */}
@@ -185,7 +188,7 @@ export default function ReaderPage() {
 
       {/* ─── Main Layout ─── */}
       <div className="flex-1 flex overflow-hidden relative">
-        {sidebarOpen && (
+        {sidebarOpen && !isPrimitive && (
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden fixed inset-0 bg-black/45 z-10"
@@ -194,7 +197,7 @@ export default function ReaderPage() {
         )}
 
         {/* Left Sidebar — Collapsible Volume/Chapter tree */}
-        {sidebarOpen && (
+        {sidebarOpen && !isPrimitive && (
           <div className="absolute lg:relative inset-y-0 left-0 z-20 w-[82vw] max-w-60 bg-bg-secondary/95 lg:bg-bg-secondary/30 border-r border-divider flex flex-col shrink-0 overflow-y-auto reader-sidebar">
             <div className="p-3 border-b border-divider">
               <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Contents</h3>
@@ -223,35 +226,43 @@ export default function ReaderPage() {
           ref={contentRef}
           className={`flex-1 overflow-y-auto ${bgOption.class} transition-colors duration-300`}
         >
-          <div className="max-w-[720px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12" style={{ fontFamily: store.readerFont + ', serif', fontSize: store.readerFontSize + 'px' }}>
+          <div
+            className={isPrimitive ? 'w-full px-4 sm:px-6 md:px-10 lg:px-12 py-8 md:py-12' : 'w-full px-4 sm:px-6 md:px-10 lg:px-14 py-8 md:py-12'}
+            style={{ fontFamily: store.readerFont + ', serif', fontSize: store.readerFontSize + 'px' }}
+          >
             {/* Chapter Banner */}
             {currentChapter.bannerImageUrl && (
               <img src={currentChapter.bannerImageUrl} alt="" className="w-full rounded-2xl mb-8" />
             )}
 
             {/* Chapter Header */}
-            <div className="mb-10">
+            {!isPrimitive && (
+              <div className="mb-10">
               <p className="text-xs uppercase tracking-[0.3em] opacity-40 mb-3">{novel.volumes.find(v => v.chapters.some(c => c.id === chapterId))?.title}</p>
               <h1 className="font-display text-2xl font-bold mb-3 text-accent border-b border-divider/50 pb-4">
                 {currentChapter.title}
               </h1>
               <p className="text-sm opacity-50 mt-3">~{readTime} min read · {currentChapter.wordCount.toLocaleString()} words</p>
-            </div>
+              </div>
+            )}
 
             {/* Chapter Content (non-editable) */}
             <div
-              className="leading-[1.9] reader-content prose prose-invert max-w-none"
+              className={`leading-[1.9] reader-content max-w-none ${isPrimitive ? '' : 'prose prose-invert'}`}
               style={{ lineHeight: '1.9' }}
               dangerouslySetInnerHTML={{ __html: currentChapter.content || '<p style="opacity:0.5;text-align:center;">This chapter is empty.</p>' }}
             />
 
             {/* End of Chapter */}
-            <div className="mt-16 mb-8 text-center opacity-30">
+            {!isPrimitive && (
+              <div className="mt-16 mb-8 text-center opacity-30">
               <span className="text-lg tracking-[1em]">◆ ◆ ◆</span>
-            </div>
+              </div>
+            )}
 
             {/* Chapter Navigation */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-8 mb-16">
+            {!isPrimitive && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-8 mb-16">
               {prevChapter ? (
                 <button
                   onClick={() => navigate(`/read/${novelId}/${prevChapter.id}`)}
@@ -271,7 +282,8 @@ export default function ReaderPage() {
                   <p className="text-sm font-medium truncate">{nextChapter.title}</p>
                 </button>
               ) : <div className="flex-1" />}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -280,9 +292,9 @@ export default function ReaderPage() {
       <div className="hidden sm:flex h-7 bg-bg-secondary/50 border-t border-divider items-center px-4 text-xs text-text-secondary gap-4 shrink-0">
         <span>{novel.title}</span>
         <span className="text-text-secondary/40">|</span>
-        <span>{currentChapter.title}</span>
+        <span>{isPrimitive ? 'Primitive Reading' : currentChapter.title}</span>
         <div className="flex-1" />
-        <span>Ch. {currentIndex + 1} of {allChapters.length}</span>
+        {!isPrimitive && <span>Ch. {currentIndex + 1} of {allChapters.length}</span>}
         <span>{currentChapter.wordCount.toLocaleString()} words</span>
         <span>~{readTime} min read</span>
       </div>

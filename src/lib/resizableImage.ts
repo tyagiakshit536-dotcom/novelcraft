@@ -14,15 +14,19 @@ export const ResizableImage = Image.extend({
     return {
       ...this.parent?.(),
       width: {
-        default: 360,
+        default: -1,
         parseHTML: element => {
           const fromData = Number(element.getAttribute('data-width'));
           if (Number.isFinite(fromData) && fromData > 0) return fromData;
           const fromWidthAttr = Number(element.getAttribute('width'));
           if (Number.isFinite(fromWidthAttr) && fromWidthAttr > 0) return fromWidthAttr;
-          const fromStyle = Number.parseInt(element.style.width || '', 10);
-          if (Number.isFinite(fromStyle) && fromStyle > 0) return fromStyle;
-          return 360;
+          const styleWidth = (element.style.width || '').trim();
+          if (styleWidth.endsWith('%')) return -1;
+          if (styleWidth && !styleWidth.endsWith('%')) {
+            const fromStyle = Number.parseFloat(styleWidth);
+            if (Number.isFinite(fromStyle) && fromStyle > 0) return fromStyle;
+          }
+          return -1;
         },
         renderHTML: attributes => ({ 'data-width': attributes.width }),
       },
@@ -41,14 +45,15 @@ export const ResizableImage = Image.extend({
 
   renderHTML({ HTMLAttributes }) {
     const align = (HTMLAttributes.align || 'left') as 'left' | 'center' | 'right';
-    const width = Number(HTMLAttributes.width || 360);
+    const width = Number(HTMLAttributes.width ?? -1);
+    const resolvedWidth = width > 0 ? `${width}px` : '100%';
     const xOffset = Number(HTMLAttributes.xOffset || 0);
 
     return [
       'img',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         draggable: 'true',
-        style: `display: block; max-width: 100%; width: ${width}px; ${alignStyles[align] || alignStyles.left} transform: translateX(${xOffset}px);`,
+        style: `display: block; max-width: 100%; width: ${resolvedWidth}; ${alignStyles[align] || alignStyles.left} transform: translateX(${xOffset}px);`,
       }),
     ];
   },

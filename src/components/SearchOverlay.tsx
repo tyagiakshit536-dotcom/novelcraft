@@ -158,6 +158,13 @@ export default function SearchOverlay() {
                             <Crown size={9} /> Premium
                           </div>
                         )}
+                        <div className={`absolute bottom-1 right-1 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none ${
+                          novel.mode === 'primitive'
+                            ? 'bg-[#FF8A6B]/95 text-[#1A0E0E]'
+                            : 'bg-[#E2B04A]/95 text-[#1A0E0E]'
+                        }`}>
+                          {novel.mode === 'primitive' ? 'Primitive' : 'Modern'}
+                        </div>
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold line-clamp-1">{novel.title}</p>

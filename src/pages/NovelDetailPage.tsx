@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, BookOpen, Clock, Eye, Bookmark, Share2, ChevronDown, ChevronRight, MessageCircle, Heart, Clock3, PlusCircle } from 'lucide-react';
 import { useStore } from '../store';
-import { useState } from 'react';
-import { GENRE_COLORS } from '../types';
+import { useEffect, useState } from 'react';
+import { GENRE_COLORS, type Novel } from '../types';
+import { novelService } from '../lib/services';
 
 export default function NovelDetailPage() {
   const { novelId } = useParams();
@@ -30,8 +31,56 @@ export default function NovelDetailPage() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
   const [showPlaylistPicker, setShowPlaylistPicker] = useState(false);
+  const [fallbackNovel, setFallbackNovel] = useState<Novel | null>(null);
+  const [isResolvingNovel, setIsResolvingNovel] = useState(true);
 
-  const novel = [...novels, ...userNovels].find(n => n.id === novelId);
+  const storeNovel = [...novels, ...userNovels].find(n => n.id === novelId);
+
+  useEffect(() => {
+    let active = true;
+
+    if (storeNovel) {
+      setFallbackNovel(null);
+      setIsResolvingNovel(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    if (!novelId) {
+      setIsResolvingNovel(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    setIsResolvingNovel(true);
+    novelService
+      .getNovel(novelId)
+      .then((n) => {
+        if (!active) return;
+        setFallbackNovel(n);
+        setIsResolvingNovel(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setFallbackNovel(null);
+        setIsResolvingNovel(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [novelId, storeNovel]);
+
+  const novel = storeNovel || fallbackNovel;
+
+  if (isResolvingNovel && !novel) return (
+    <div className="flex items-center justify-center h-screen">
+      <p className="text-text-secondary">Loading novel...</p>
+    </div>
+  );
+
   if (!novel) return (
     <div className="flex items-center justify-center h-screen">
       <p className="text-text-secondary">Novel not found</p>
@@ -46,6 +95,7 @@ export default function NovelDetailPage() {
   const novelReviews = reviews.filter(r => r.novelId === novelId);
   const totalChapters = novel.volumes.reduce((sum, v) => sum + v.chapters.length, 0);
   const estimatedReadTime = Math.ceil(novel.totalWords / 250);
+  const isPrimitive = novel.mode === 'primitive';
 
   const toggleVolume = (volId: string) => {
     setExpandedVolumes(prev => {
@@ -201,37 +251,45 @@ export default function NovelDetailPage() {
       </div>
 
       {/* Chapter Index */}
-      <div className="px-4 sm:px-6 mb-8">
-        <h3 className="font-semibold text-lg mb-4">Table of Contents</h3>
-        <div className="space-y-2">
-          {novel.volumes.map(volume => (
-            <div key={volume.id} className="glass-card overflow-hidden">
-              <button
-                onClick={() => toggleVolume(volume.id)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-bg-tertiary/50 transition-colors"
-              >
-                {expandedVolumes.has(volume.id) ? <ChevronDown size={18} className="text-accent" /> : <ChevronRight size={18} className="text-text-secondary" />}
-                <span className="font-display font-semibold text-accent">{volume.title}</span>
-                <span className="text-text-secondary text-xs ml-auto">{volume.chapters.length} chapters</span>
-              </button>
-              {expandedVolumes.has(volume.id) && (
-                <div className="border-t border-divider">
-                  {volume.chapters.map(chapter => (
-                    <button
-                      key={chapter.id}
-                      onClick={() => navigate(`/read/${novel.id}/${chapter.id}`)}
-                      className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 px-4 sm:px-6 py-3 text-left hover:bg-bg-tertiary/30 transition-colors border-b border-divider/50 last:border-none"
-                    >
-                      <span className="text-sm text-text-primary">{chapter.title}</span>
-                      <span className="text-xs text-text-secondary">{chapter.wordCount.toLocaleString()} words</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+      {!isPrimitive ? (
+        <div className="px-4 sm:px-6 mb-8">
+          <h3 className="font-semibold text-lg mb-4">Table of Contents</h3>
+          <div className="space-y-2">
+            {novel.volumes.map(volume => (
+              <div key={volume.id} className="glass-card overflow-hidden">
+                <button
+                  onClick={() => toggleVolume(volume.id)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-bg-tertiary/50 transition-colors"
+                >
+                  {expandedVolumes.has(volume.id) ? <ChevronDown size={18} className="text-accent" /> : <ChevronRight size={18} className="text-text-secondary" />}
+                  <span className="font-display font-semibold text-accent">{volume.title}</span>
+                  <span className="text-text-secondary text-xs ml-auto">{volume.chapters.length} chapters</span>
+                </button>
+                {expandedVolumes.has(volume.id) && (
+                  <div className="border-t border-divider">
+                    {volume.chapters.map(chapter => (
+                      <button
+                        key={chapter.id}
+                        onClick={() => navigate(`/read/${novel.id}/${chapter.id}`)}
+                        className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 px-4 sm:px-6 py-3 text-left hover:bg-bg-tertiary/30 transition-colors border-b border-divider/50 last:border-none"
+                      >
+                        <span className="text-sm text-text-primary">{chapter.title}</span>
+                        <span className="text-xs text-text-secondary">{chapter.wordCount.toLocaleString()} words</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="px-4 sm:px-6 mb-8">
+          <div className="glass-card p-4 text-sm text-text-secondary">
+            Primitive mode uses a single long-page reading experience without chapter/volume structure.
+          </div>
+        </div>
+      )}
 
       {/* Reviews */}
       <div className="px-4 sm:px-6">

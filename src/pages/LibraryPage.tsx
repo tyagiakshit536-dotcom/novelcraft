@@ -16,6 +16,7 @@ export default function LibraryPage() {
   const [contextMenu, setContextMenu] = useState<string | null>(null);
   const [showNewNovelModal, setShowNewNovelModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [newMode, setNewMode] = useState<'modern' | 'primitive'>('modern');
   const [deleteCandidate, setDeleteCandidate] = useState<Novel | null>(null);
 
   // Close context menu on click outside
@@ -41,9 +42,10 @@ export default function LibraryPage() {
 
   const handleCreateNovel = () => {
     if (!newTitle.trim()) return;
-    const novel = createNovel(newTitle.trim(), '', []);
+    const novel = createNovel(newTitle.trim(), '', [], newMode);
     setShowNewNovelModal(false);
     setNewTitle('');
+    setNewMode('modern');
     navigate('/editor', { state: { novelId: novel.id } });
   };
 
@@ -159,6 +161,13 @@ export default function LibraryPage() {
                   }`}>
                     {upcomingNovelIds.includes(novel.id) ? 'Upcoming' : (novel.status.charAt(0).toUpperCase() + novel.status.slice(1))}
                   </span>
+                  <span className={`absolute top-2 left-2 text-[10px] px-2 py-1 rounded-full font-bold tracking-wide ${
+                    novel.mode === 'primitive'
+                      ? 'bg-[#FF8A6B]/90 text-[#1A0E0E]'
+                      : 'bg-[#E2B04A]/90 text-[#1A0E0E]'
+                  }`}>
+                    {novel.mode === 'primitive' ? 'Primitive' : 'Modern'}
+                  </span>
                 </div>
                 <p className="font-medium text-sm text-text-primary line-clamp-2 mb-1">{novel.title}</p>
                 <p className="text-text-secondary text-xs">
@@ -220,6 +229,13 @@ export default function LibraryPage() {
                   <p className="text-text-secondary text-sm">{novel.volumes.length} vol · {novel.volumes.reduce((s, v) => s + v.chapters.length, 0)} ch · {novel.totalWords.toLocaleString()} words</p>
                   <div className="flex items-center gap-3 mt-2">
                     <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                      novel.mode === 'primitive'
+                        ? 'bg-[#FF8A6B]/20 text-[#FF8A6B]'
+                        : 'bg-[#E2B04A]/20 text-gold border border-gold/40'
+                    }`}>
+                      {novel.mode}
+                    </span>
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
                       upcomingNovelIds.includes(novel.id)
                         ? 'bg-gold/20 text-gold border border-gold/40'
                         : novel.status === 'published'
@@ -279,6 +295,28 @@ export default function LibraryPage() {
               autoFocus
               className="w-full px-4 py-3 bg-bg-primary rounded-xl border border-divider focus:border-accent focus:outline-none text-text-primary placeholder:text-text-secondary/50 text-lg mb-6"
             />
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <button
+                onClick={() => setNewMode('modern')}
+                className={`px-4 py-3 rounded-xl border text-sm font-semibold transition-colors ${
+                  newMode === 'modern'
+                    ? 'border-accent bg-accent/15 text-accent'
+                    : 'border-divider bg-bg-primary text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Modern
+              </button>
+              <button
+                onClick={() => setNewMode('primitive')}
+                className={`px-4 py-3 rounded-xl border text-sm font-semibold transition-colors ${
+                  newMode === 'primitive'
+                    ? 'border-[#FF8A6B] bg-[#FF8A6B]/15 text-[#FF8A6B]'
+                    : 'border-divider bg-bg-primary text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Primitive
+              </button>
+            </div>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowNewNovelModal(false)} className="px-5 py-2.5 text-text-secondary hover:text-text-primary transition-colors">
                 Cancel

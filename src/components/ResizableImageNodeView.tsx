@@ -19,7 +19,8 @@ export default function ResizableImageNodeView({ node, selected, updateAttribute
 
   const src = String(node.attrs.src || '');
   const alt = String(node.attrs.alt || '');
-  const width = Number(node.attrs.width || 360);
+  const width = Number(node.attrs.width ?? -1);
+  const renderedWidth = width > 0 ? `${width}px` : '100%';
   const align = (node.attrs.align || 'left') as ImageAlign;
   const xOffset = Number(node.attrs.xOffset || 0);
 
@@ -94,7 +95,7 @@ export default function ResizableImageNodeView({ node, selected, updateAttribute
       <div
         ref={wrapperRef}
         className={`resizable-image-node ${selected ? 'is-selected' : ''} ${resizing ? 'is-resizing' : ''} ${moving ? 'is-moving' : ''}`}
-        style={{ width: `${width}px`, transform: `translateX(${xOffset}px)`, ...alignStyle[align] }}
+        style={{ width: renderedWidth, transform: `translateX(${xOffset}px)`, ...alignStyle[align] }}
         contentEditable={false}
         draggable={false}
         onMouseDown={() => editor.commands.focus()}

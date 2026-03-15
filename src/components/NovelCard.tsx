@@ -35,6 +35,13 @@ export function NovelCard({ novel, size = 'normal' }: { novel: Novel; size?: 'no
             <Rocket size={10} /> Upcoming
           </div>
         )}
+        <div className={`absolute top-2 right-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold shadow-lg ${
+          novel.mode === 'primitive'
+            ? 'bg-[#FF8A6B]/90 text-[#1A0E0E]'
+            : 'bg-[#E2B04A]/90 text-[#1A0E0E]'
+        }`}>
+          {novel.mode === 'primitive' ? 'Primitive' : 'Modern'}
+        </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-3 rounded-xl">
           <p className="text-white text-xs font-bold line-clamp-2 mb-1">{novel.title}</p>
           <p className="text-gray-400 text-[10px] mb-1">{novel.authorName}</p>

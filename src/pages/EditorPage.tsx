@@ -28,6 +28,7 @@ import type { Novel, Volume } from '../types';
 import { GENRES, NOVEL_NICHES } from '../types';
 import { useBackgroundMusic } from '../lib/useBackgroundMusic';
 import { readImageFileAsDataUrl } from '../lib/imageFiles';
+import { importDocumentFile, type ImportedDocumentResult } from '../lib/documentImport';
 import AIAssistant from '../components/AIAssistant';
 import DrawingToolbar from '../components/DrawingToolbar';
 import TranslatePanel from '../components/TranslatePanel';
@@ -51,6 +52,10 @@ export default function EditorPage() {
   const [imageUrl, setImageUrl] = useState('');
   const [showCoverModal, setShowCoverModal] = useState(false);
   const [coverUrl, setCoverUrl] = useState('');
+  const [showImportPreview, setShowImportPreview] = useState(false);
+  const [importPreview, setImportPreview] = useState<ImportedDocumentResult | null>(null);
+  const [importingDoc, setImportingDoc] = useState(false);
+  const [importError, setImportError] = useState('');
   const [showAI, setShowAI] = useState(false);
   const [showTranslate, setShowTranslate] = useState(false);
   const [imageUploadError, setImageUploadError] = useState('');
@@ -58,6 +63,7 @@ export default function EditorPage() {
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const imageFileInputRef = useRef<HTMLInputElement | null>(null);
   const coverFileInputRef = useRef<HTMLInputElement | null>(null);
+  const docFileInputRef = useRef<HTMLInputElement | null>(null);
   const music = useBackgroundMusic();
 
   // Resolve which novel to edit. If a temporary route ID was replaced in store,
@@ -65,6 +71,7 @@ export default function EditorPage() {
   const locationNovelExists = !!locationNovelId && store.userNovels.some(n => n.id === locationNovelId);
   const activeNovelId = locationNovelExists ? locationNovelId : store.activeNovelId;
   const novel = store.userNovels.find(n => n.id === activeNovelId);
+  const isPrimitive = novel?.mode === 'primitive';
 
   // If no novel and navigated here, create one
   useEffect(() => {
@@ -95,7 +102,7 @@ export default function EditorPage() {
       Placeholder.configure({ placeholder: 'Begin writing your story...' }),
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      ResizableImage.configure({ inline: false }),
+      ResizableImage.configure({ inline: false, allowBase64: true }),
       Highlight.configure({ multicolor: true }),
       CharacterCount,
       TextStyle,
@@ -368,14 +375,71 @@ export default function EditorPage() {
   };
 
   const handleAddChapter = (volumeId: string) => {
+    if (isPrimitive) return;
     const chapterNum = novel.volumes.find(v => v.id === volumeId)?.chapters.length || 0;
     const ch = store.addChapter(novel.id, volumeId, `Chapter ${chapterNum + 1}: Untitled`);
     store.setActiveChapter(novel.id, ch.id);
   };
 
   const handleAddVolume = () => {
+    if (isPrimitive) return;
     const volNum = novel.volumes.length + 1;
     store.addVolume(novel.id, `Volume ${toRoman(volNum)}`);
+  };
+
+  const countWordsFromHtml = (html: string): number => {
+    const plain = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!plain) return 0;
+    return plain.split(' ').length;
+  };
+
+  const escapeHtml = (value: string): string => value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+  const handleImportDocument = async (files: FileList | File[] | null) => {
+    if (!files || !editor) return;
+    const selectedFiles = Array.from(files);
+    if (!selectedFiles.length) return;
+
+    setImportError('');
+    setImportingDoc(true);
+
+    try {
+      let nextHtml = editor.getHTML();
+      let lastImported: ImportedDocumentResult | null = null;
+
+      for (const file of selectedFiles) {
+        const imported = await importDocumentFile(file);
+        const injected = `<h2>${escapeHtml(file.name)}</h2>${imported.html}`;
+        nextHtml = nextHtml && nextHtml !== '<p></p>' ? `${nextHtml}${injected}` : injected;
+        lastImported = imported;
+      }
+
+      editor.commands.setContent(nextHtml);
+
+      if (activeChapter) {
+        const volume = novel.volumes.find(v => v.id === activeChapter.volumeId);
+        if (volume) {
+          store.updateChapter(novel.id, volume.id, activeChapter.id, {
+            content: nextHtml,
+            wordCount: countWordsFromHtml(nextHtml),
+          });
+        }
+      }
+
+      if (lastImported) {
+        setImportPreview(lastImported);
+        setShowImportPreview(true);
+      }
+    } catch (err: unknown) {
+      setImportError(err instanceof Error ? err.message : 'Document import failed.');
+    } finally {
+      setImportingDoc(false);
+    }
   };
 
   const handleContextMenuAction = (action: string) => {
@@ -425,12 +489,35 @@ export default function EditorPage() {
           <button onClick={handleAddImage} className="w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors" title="Add Image">
             <ImagePlus size={18} />
           </button>
-          <button onClick={() => { const vol = novel.volumes[novel.volumes.length - 1]; if (vol) handleAddChapter(vol.id); }} className="w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors" title="New Chapter">
+          <button
+            onClick={() => docFileInputRef.current?.click()}
+            disabled={importingDoc}
+            className="w-9 h-9 rounded-lg hover:bg-bg-tertiary disabled:opacity-60 flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
+            title="Import Document"
+          >
             <FilePlus size={18} />
           </button>
-          <button onClick={handleAddVolume} className="w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors" title="New Volume">
-            <FolderPlus size={18} />
-          </button>
+          {!isPrimitive && (
+            <button onClick={() => { const vol = novel.volumes[novel.volumes.length - 1]; if (vol) handleAddChapter(vol.id); }} className="w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors" title="New Chapter">
+              <FileText size={18} />
+            </button>
+          )}
+          {!isPrimitive && (
+            <button onClick={handleAddVolume} className="w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors" title="New Volume">
+              <FolderPlus size={18} />
+            </button>
+          )}
+          <input
+            ref={docFileInputRef}
+            type="file"
+            multiple
+            accept=".docx,.pdf,.epub,.txt,.html,.htm"
+            className="hidden"
+            onChange={e => {
+              handleImportDocument(e.target.files);
+              e.currentTarget.value = '';
+            }}
+          />
 
           <div className="w-px h-6 bg-divider mx-1" />
 
@@ -570,7 +657,7 @@ export default function EditorPage() {
         {store.editorSidebarOpen && !focusMode && (
           <div className="absolute md:relative inset-y-0 left-0 z-20 w-[82vw] max-w-60 bg-bg-secondary/95 md:bg-bg-secondary/30 border-r border-divider flex flex-col shrink-0 overflow-y-auto">
             <div className="p-3 border-b border-divider">
-              <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Novel Structure</h3>
+              <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">{isPrimitive ? 'Primitive Mode' : 'Novel Structure'}</h3>
             </div>
 
             {/* Novel Title */}
@@ -582,30 +669,32 @@ export default function EditorPage() {
             </div>
 
             {/* Volumes & Chapters */}
-            <div className="flex-1 px-2 pb-4">
-              {novel.volumes.map(volume => (
-                <VolumeTreeNode
-                  key={volume.id}
-                  volume={volume}
-                  activeChapterId={store.activeChapterId}
-                  onSelectChapter={(chId) => store.setActiveChapter(novel.id, chId)}
-                  onAddChapter={() => handleAddChapter(volume.id)}
-                  onContextMenu={(id, type, x, y) => setContextMenu({ id, type, x, y })}
-                  editingId={editingId}
-                  editingTitle={editingTitle}
-                  setEditingTitle={setEditingTitle}
-                  onFinishEditing={handleFinishEditing}
-                  onCancelEditing={() => setEditingId(null)}
-                />
-              ))}
+            {!isPrimitive && (
+              <div className="flex-1 px-2 pb-4">
+                {novel.volumes.map(volume => (
+                  <VolumeTreeNode
+                    key={volume.id}
+                    volume={volume}
+                    activeChapterId={store.activeChapterId}
+                    onSelectChapter={(chId) => store.setActiveChapter(novel.id, chId)}
+                    onAddChapter={() => handleAddChapter(volume.id)}
+                    onContextMenu={(id, type, x, y) => setContextMenu({ id, type, x, y })}
+                    editingId={editingId}
+                    editingTitle={editingTitle}
+                    setEditingTitle={setEditingTitle}
+                    onFinishEditing={handleFinishEditing}
+                    onCancelEditing={() => setEditingId(null)}
+                  />
+                ))}
 
-              <button
-                onClick={handleAddVolume}
-                className="w-full flex items-center gap-2 px-3 py-2 mt-1 text-text-secondary hover:text-accent text-sm rounded-lg hover:bg-bg-tertiary/50 transition-colors"
-              >
-                <Plus size={14} /> Add Volume
-              </button>
-            </div>
+                <button
+                  onClick={handleAddVolume}
+                  className="w-full flex items-center gap-2 px-3 py-2 mt-1 text-text-secondary hover:text-accent text-sm rounded-lg hover:bg-bg-tertiary/50 transition-colors"
+                >
+                  <Plus size={14} /> Add Volume
+                </button>
+              </div>
+            )}
 
             {/* Cover Image */}
             <div className="px-3 pb-3 border-t border-divider pt-3">
@@ -636,10 +725,16 @@ export default function EditorPage() {
         {/* Center — Writing Canvas */}
         <div className="flex-1 overflow-y-auto relative" onClick={() => { setContextMenu(null); if (focusMode) setFocusMode(false); }}>
           <div className={`w-full px-4 sm:px-6 md:px-8 py-8 md:py-12 min-h-full ${previewMode ? 'font-reader' : ''}`} style={{ fontSize: `${store.editorFontSize}px` }}>
-            {activeChapter && (
+            {!isPrimitive && activeChapter && (
               <h1 className="font-display text-2xl font-bold text-accent mb-8 border-b border-divider/50 pb-4">
                 {activeChapter.title}
               </h1>
+            )}
+            {isPrimitive && (
+              <p className="text-sm text-text-secondary mb-6">Primitive writing mode: simple long-page drafting with no chapter/volume tree.</p>
+            )}
+            {importError && (
+              <p className="text-sm text-error mb-4">{importError}</p>
             )}
             <EditorContent editor={editor} className="w-full" />
           </div>
@@ -692,7 +787,7 @@ export default function EditorPage() {
         <div className="hidden sm:flex h-7 bg-bg-secondary/50 border-t border-divider items-center px-4 text-xs text-text-secondary gap-4 shrink-0">
           <span>{novel.title}</span>
           <span className="text-text-secondary/40">|</span>
-          <span>{activeChapter?.title || 'No chapter'}</span>
+          <span>{isPrimitive ? 'Primitive Mode' : (activeChapter?.title || 'No chapter')}</span>
           <div className="flex-1" />
           <span>{wordCount.toLocaleString()} words</span>
           <span>{charCount.toLocaleString()} chars</span>
@@ -701,7 +796,7 @@ export default function EditorPage() {
       )}
 
       {/* Context Menu */}
-      {contextMenu && (
+      {contextMenu && !isPrimitive && (
         <div
           className="fixed z-50 glass-card p-1.5 min-w-[140px] animate-scale-in"
           style={{ left: contextMenu.x, top: contextMenu.y }}
@@ -749,6 +844,23 @@ export default function EditorPage() {
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowImageModal(false)} className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors text-sm">Cancel</button>
               <button onClick={handleInsertImage} className="px-5 py-2 bg-accent text-white rounded-xl font-semibold text-sm hover:bg-accent-hover transition-all">Insert</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Imported Document Preview */}
+      {showImportPreview && importPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setShowImportPreview(false)}>
+          <div className="glass-card p-4 w-full max-w-5xl h-[85vh] animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display text-lg font-bold">Original Document Preview</h3>
+              <button onClick={() => setShowImportPreview(false)} className="px-3 py-1.5 text-sm rounded-lg bg-bg-primary border border-divider hover:border-accent">
+                Close
+              </button>
+            </div>
+            <div className="h-[calc(100%-44px)] rounded-xl overflow-hidden border border-divider bg-bg-primary">
+              <div className="h-full overflow-y-auto p-4 prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: importPreview.html || '' }} />
             </div>
           </div>
         </div>

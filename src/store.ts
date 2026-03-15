@@ -76,6 +76,7 @@ function generateSampleNovels(): Novel[] {
     id: `novel-${i + 1}`,
     authorId: `user-${(i % authors.length) + 1}`,
     authorName: authors[i % authors.length],
+    mode: 'modern' as const,
     title,
     synopsis: synopses[i % synopses.length],
     coverImageUrl: covers[i % covers.length],
@@ -208,7 +209,7 @@ interface AppState {
   markNotificationRead: (notificationId: string) => void;
   markAllNotificationsRead: () => void;
 
-  createNovel: (title: string, synopsis: string, genreTags: string[]) => Novel;
+  createNovel: (title: string, synopsis: string, genreTags: string[], mode?: 'modern' | 'primitive') => Novel;
   updateNovel: (novelId: string, updates: Partial<Novel>) => void;
   deleteNovel: (novelId: string) => void;
   publishNovel: (novelId: string, authorName: string, synopsis: string, genreTags: string[], ageRating: 'all' | 'teen' | 'mature', mode: 'public' | 'unlisted' | 'upcoming') => void;
@@ -341,6 +342,11 @@ export const useStore = create<AppState>()(
       // ─── Auth ───
 
       initAuth: async () => {
+        const authFailSafe = setTimeout(() => {
+          if (get().authLoading) {
+            set({ authLoading: false });
+          }
+        }, 8000);
         try {
           const session = await authService.getSession();
           if (session?.user) {
@@ -359,12 +365,14 @@ export const useStore = create<AppState>()(
                 readerFont: settings?.readerFont ?? 'Lora',
                 readerFontSize: settings?.readerFontSize ?? 18,
               });
-              get().loadUserData(session.user.id);
+              get().loadUserData(session.user.id).catch(console.error);
               return;
             }
           }
         } catch (e) {
           console.error('Init auth error:', e);
+        } finally {
+          clearTimeout(authFailSafe);
         }
         set({ authLoading: false, isAuthenticated: false, currentUser: null });
       },
@@ -385,9 +393,8 @@ export const useStore = create<AppState>()(
 
           // Merge published novels with samples for a richer discovery feed
           const dbNovelIds = new Set(publishedNovels.map(n => n.id));
-          const userNovelIds = new Set(userNovels.map(n => n.id));
           const filteredSamples = sampleNovels.filter(s => !dbNovelIds.has(s.id));
-          const discoveryNovels = [...publishedNovels.filter(n => !userNovelIds.has(n.id)), ...filteredSamples];
+          const discoveryNovels = [...publishedNovels, ...filteredSamples];
 
           // Keep local optimistic novels so they don't disappear while backend consistency catches up.
           set((s) => {
@@ -512,7 +519,7 @@ export const useStore = create<AppState>()(
 
       // ─── Novel CRUD ───
 
-      createNovel: (title, synopsis, genreTags) => {
+      createNovel: (title, synopsis, genreTags, mode = 'modern') => {
         const user = get().currentUser;
         const id = tempId();
         const volumeId = tempId();
@@ -521,6 +528,7 @@ export const useStore = create<AppState>()(
           id,
           authorId: user?.id || '',
           authorName: user?.displayName || 'Anonymous',
+          mode,
           title,
           synopsis,
           coverImageUrl: '',
@@ -562,7 +570,7 @@ export const useStore = create<AppState>()(
 
         // Persist to Supabase, then swap temp IDs with real ones
         if (user?.id) {
-          novelService.createNovel(user.id, user.displayName, title, synopsis, genreTags).then(realNovel => {
+          novelService.createNovel(user.id, user.displayName, title, synopsis, genreTags, mode).then(realNovel => {
             set(s => {
               const tempNovel = s.userNovels.find(n => n.id === id);
               const mergedRealNovel = tempNovel
@@ -670,7 +678,13 @@ export const useStore = create<AppState>()(
           };
         });
         if (!novelId.startsWith('temp-') && !novelId.startsWith('novel-')) {
-          novelService.publishNovel(novelId, authorName, synopsis, genreTags, ageRating, isUnlisted).catch(console.error);
+          novelService.publishNovel(novelId, authorName, synopsis, genreTags, ageRating, isUnlisted)
+            .then(() => {
+              const userId = get().currentUser?.id;
+              if (!userId) return;
+              get().loadUserData(userId).catch(console.error);
+            })
+            .catch(console.error);
         }
       },
 
@@ -681,7 +695,13 @@ export const useStore = create<AppState>()(
           upcomingNovelIds: s.upcomingNovelIds.filter(id => id !== novelId),
         }));
         if (!novelId.startsWith('temp-') && !novelId.startsWith('novel-')) {
-          novelService.unpublishNovel(novelId).catch(console.error);
+          novelService.unpublishNovel(novelId)
+            .then(() => {
+              const userId = get().currentUser?.id;
+              if (!userId) return;
+              get().loadUserData(userId).catch(console.error);
+            })
+            .catch(console.error);
         }
       },
 
@@ -1050,7 +1070,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'novelcraft-storage',
-      version: 1,
+      version: 3,
       migrate: (_persisted: unknown, version: number) => {
         if (version === 0) {
           // Clear all old pre-Supabase localStorage data
@@ -1089,20 +1109,34 @@ export const useStore = create<AppState>()(
             readerFontSize: 18,
           };
         }
+        if (version === 1) {
+          const persisted = (_persisted as Record<string, unknown>) || {};
+          const userNovels = Array.isArray(persisted.userNovels) ? persisted.userNovels : [];
+          return {
+            ...persisted,
+            userNovels: userNovels.map((novel) => ({ mode: 'modern', ...(novel as Record<string, unknown>) })),
+          };
+        }
+        if (version === 2) {
+          const persisted = (_persisted as Record<string, unknown>) || {};
+          return {
+            ...persisted,
+            userNovels: [],
+            reviews: [],
+            comments: [],
+            characters: [],
+            worldEntries: [],
+            characterImages: [],
+          };
+        }
         return _persisted as Record<string, unknown>;
       },
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         currentUser: state.currentUser,
-        userNovels: state.userNovels,
         readingProgress: state.readingProgress,
         readingList: state.readingList,
-        reviews: state.reviews,
-        comments: state.comments,
-        characters: state.characters,
-        worldEntries: state.worldEntries,
-        characterImages: state.characterImages,
         theme: state.theme,
         appLanguage: state.appLanguage,
         profileMode: state.profileMode,

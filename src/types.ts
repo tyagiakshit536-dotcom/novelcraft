@@ -33,6 +33,7 @@ export interface Novel {
   id: string;
   authorId: string;
   authorName: string;
+  mode: 'modern' | 'primitive';
   title: string;
   synopsis: string;
   coverImageUrl: string;

@@ -30,6 +30,7 @@ create table if not exists public.novels (
   id uuid primary key default gen_random_uuid(),
   author_id uuid not null references public.profiles(id) on delete cascade,
   author_name text not null default '',
+  novel_mode text not null default 'modern' check (novel_mode in ('modern', 'primitive')),
   title text not null default 'Untitled Novel',
   synopsis text not null default '',
   cover_image_url text not null default '',
@@ -45,6 +46,15 @@ create table if not exists public.novels (
   rating_count int not null default 0,
   is_unlisted boolean not null default false
 );
+
+alter table public.novels
+  add column if not exists novel_mode text not null default 'modern';
+
+alter table public.novels
+  drop constraint if exists novels_novel_mode_check;
+
+alter table public.novels
+  add constraint novels_novel_mode_check check (novel_mode in ('modern', 'primitive'));
 
 -- 3. Volumes
 create table if not exists public.volumes (
@@ -167,6 +177,7 @@ create table if not exists public.follows (
 -- =============================================
 create index if not exists idx_novels_author on public.novels(author_id);
 create index if not exists idx_novels_status on public.novels(status);
+create index if not exists idx_novels_discovery on public.novels(status, is_unlisted, updated_at desc, created_at desc);
 create index if not exists idx_volumes_novel on public.volumes(novel_id);
 create index if not exists idx_chapters_volume on public.chapters(volume_id);
 create index if not exists idx_chapters_novel on public.chapters(novel_id);

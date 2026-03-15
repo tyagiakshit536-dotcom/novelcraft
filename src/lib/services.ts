@@ -54,6 +54,7 @@ function mapNovelFromDb(n: Record<string, unknown>, volumes: Volume[]): Novel {
     id: n.id as string,
     authorId: n.author_id as string,
     authorName: n.author_name as string,
+    mode: ((n.novel_mode as 'modern' | 'primitive' | undefined) || 'modern'),
     title: n.title as string,
     synopsis: n.synopsis as string,
     coverImageUrl: n.cover_image_url as string,
@@ -348,7 +349,8 @@ export const novelService = {
       .select('*')
       .eq('status', 'published')
       .eq('is_unlisted', false)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: false });
     return assembleNovels(data || []);
   },
 
@@ -369,10 +371,17 @@ export const novelService = {
     return assembleNovel(data);
   },
 
-  async createNovel(userId: string, authorName: string, title: string, synopsis: string, genreTags: string[]): Promise<Novel> {
+  async createNovel(
+    userId: string,
+    authorName: string,
+    title: string,
+    synopsis: string,
+    genreTags: string[],
+    mode: 'modern' | 'primitive' = 'modern'
+  ): Promise<Novel> {
     const { data: novelRow, error: nErr } = await supabase
       .from('novels')
-      .insert({ author_id: userId, author_name: authorName, title, synopsis, genre_tags: genreTags })
+      .insert({ author_id: userId, author_name: authorName, novel_mode: mode, title, synopsis, genre_tags: genreTags })
       .select()
       .single();
     if (nErr || !novelRow) throw nErr || new Error('Failed to create novel');
@@ -403,6 +412,7 @@ export const novelService = {
     if (updates.coverImageUrl !== undefined) dbUpdates.cover_image_url = updates.coverImageUrl;
     if (updates.genreTags !== undefined) dbUpdates.genre_tags = updates.genreTags;
     if (updates.language !== undefined) dbUpdates.language = updates.language;
+    if (updates.mode !== undefined) dbUpdates.novel_mode = updates.mode;
     if (updates.ageRating !== undefined) dbUpdates.age_rating = updates.ageRating;
     if (updates.status !== undefined) dbUpdates.status = updates.status;
     if (updates.isUnlisted !== undefined) dbUpdates.is_unlisted = updates.isUnlisted;
