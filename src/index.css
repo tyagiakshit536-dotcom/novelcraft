@@ -135,7 +135,7 @@
 body { font-family: var(--font-ui); overflow-x: hidden; }
 
 /* TipTap */
-.tiptap { outline: none; min-height: 100%; font-family: var(--font-editor); font-size: 16px; line-height: 1.8; letter-spacing: 0.02em; color: var(--color-text-primary); }
+.tiptap { outline: none; min-height: 100%; font-family: inherit; font-size: inherit; line-height: 1.8; letter-spacing: 0.02em; color: var(--color-text-primary); }
 .tiptap p { margin-bottom: 1em; }
 .tiptap h1 { font-family: var(--font-display); font-size: 2em; font-weight: 700; margin-bottom: 0.5em; color: #E24A4A; }
 .tiptap h2 { font-family: var(--font-display); font-size: 1.5em; font-weight: 600; margin-bottom: 0.4em; }
@@ -147,6 +147,71 @@ body { font-family: var(--font-ui); overflow-x: hidden; }
 .tiptap img { max-width: 100%; border-radius: 4px; margin: 1em 0; }
 .tiptap mark { background-color: rgba(229, 9, 20, 0.3); color: inherit; border-radius: 2px; padding: 0 2px; }
 .tiptap p.is-editor-empty:first-child::before { color: var(--color-text-secondary); content: attr(data-placeholder); float: left; height: 0; pointer-events: none; }
+
+.resizable-image-node-block { margin: 1em 0; }
+.resizable-image-node {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.resizable-image-node img {
+  width: 100%;
+  display: block;
+  border-radius: 6px;
+  margin: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.resizable-image-node.is-selected {
+  border-color: rgba(226, 74, 74, 0.75);
+  box-shadow: 0 0 0 1px rgba(226, 74, 74, 0.35);
+}
+.image-move-handle {
+  position: absolute;
+  top: -28px;
+  left: 0;
+  z-index: 5;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(26, 14, 14, 0.9);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 20px;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.resizable-image-node:hover .image-move-handle,
+.resizable-image-node.is-selected .image-move-handle,
+.resizable-image-node.is-moving .image-move-handle {
+  opacity: 1;
+}
+.resizable-image-node.is-moving .image-move-handle { cursor: grabbing; }
+
+.image-resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  right: -6px;
+  bottom: -6px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: #E24A4A;
+  border-radius: 2px;
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.resizable-image-node:hover .image-resize-handle,
+.resizable-image-node.is-selected .image-resize-handle,
+.resizable-image-node.is-resizing .image-resize-handle {
+  opacity: 1;
+}
 
 /* Card System */
 .glass-card { background: #301A1A; border: 1px solid rgba(255, 240, 240, 0.08); border-radius: 6px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }

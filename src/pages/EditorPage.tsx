@@ -5,16 +5,18 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
-import Image from '@tiptap/extension-image';
 import Highlight from '@tiptap/extension-highlight';
 import CharacterCount from '@tiptap/extension-character-count';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
+import FontFamily from '@tiptap/extension-font-family';
+import { ResizableImage } from '../lib/resizableImage';
 import {
   PanelLeft, ImagePlus, FilePlus, FolderPlus,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   Heading1, Heading2, Heading3, Quote, Minus,
   ListOrdered, List as ListIcon,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Search, BarChart3, Maximize2, Eye,
   Save, Rocket, ChevronRight, ChevronDown,
   FileText, Plus, Trash2,
@@ -93,11 +95,12 @@ export default function EditorPage() {
       Placeholder.configure({ placeholder: 'Begin writing your story...' }),
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Image.configure({ inline: true }),
+      ResizableImage.configure({ inline: false }),
       Highlight.configure({ multicolor: true }),
       CharacterCount,
       TextStyle,
       Color,
+      FontFamily,
     ],
     content: activeChapter?.content || '',
     editorProps: {
@@ -182,6 +185,72 @@ export default function EditorPage() {
   const wordCount = editor?.storage.characterCount?.words() || 0;
   const charCount = editor?.storage.characterCount?.characters() || 0;
   const readTime = Math.max(1, Math.ceil(wordCount / 250));
+  const editorFonts = [
+    'Aptos',
+    'Calibri',
+    'Calibri Light',
+    'Cambria',
+    'Candara',
+    'Constantia',
+    'Corbel',
+    'Segoe UI',
+    'Bahnschrift',
+    'JetBrains Mono',
+    'Inter',
+    'Arial',
+    'Arial Narrow',
+    'Arial Black',
+    'Verdana',
+    'Tahoma',
+    'Trebuchet MS',
+    'Helvetica',
+    'Gill Sans MT',
+    'Century Gothic',
+    'Franklin Gothic Medium',
+    'Lucida Sans Unicode',
+    'Noto Sans',
+    'Source Sans 3',
+    'Open Sans',
+    'Roboto',
+    'Times New Roman',
+    'Georgia',
+    'Palatino Linotype',
+    'Book Antiqua',
+    'Bookman Old Style',
+    'Garamond',
+    'Baskerville',
+    'Didot',
+    'Bodoni MT',
+    'Perpetua',
+    'Rockwell',
+    'Cambria Math',
+    'Lora',
+    'Merriweather',
+    'Playfair Display',
+    'Source Serif 4',
+    'Crimson Text',
+    'Noto Serif',
+    'Courier New',
+    'Consolas',
+    'Lucida Console',
+    'Cascadia Mono',
+    'Fira Code',
+    'Monaco',
+    'Impact',
+    'Sitka Text',
+    'Sitka Heading',
+  ] as const;
+  const activeFontFamily = (editor?.getAttributes('textStyle').fontFamily as string | undefined) || '__default__';
+  const imageAttrs = editor?.getAttributes('image') as { align?: 'left' | 'center' | 'right'; xOffset?: number } | undefined;
+  const setImageOrTextAlign = (align: 'left' | 'center' | 'right' | 'justify') => {
+    if (!editor) return;
+    if (editor.isActive('image')) {
+      const imageAlign = align === 'justify' ? 'center' : align;
+      editor.chain().focus().updateAttributes('image', { align: imageAlign, xOffset: 0 }).run();
+      return;
+    }
+    editor.chain().focus().setTextAlign(align).run();
+  };
 
   // Toolbar commands
   const toolbarGroups = [
@@ -211,6 +280,31 @@ export default function EditorPage() {
         { icon: ListIcon, action: () => editor?.chain().focus().toggleBulletList().run(), active: editor?.isActive('bulletList') },
       ],
     },
+    {
+      label: 'Align',
+      items: [
+        {
+          icon: AlignLeft,
+          action: () => setImageOrTextAlign('left'),
+          active: editor?.isActive('image') ? imageAttrs?.align === 'left' && Number(imageAttrs?.xOffset || 0) === 0 : editor?.isActive({ textAlign: 'left' }),
+        },
+        {
+          icon: AlignCenter,
+          action: () => setImageOrTextAlign('center'),
+          active: editor?.isActive('image') ? imageAttrs?.align === 'center' && Number(imageAttrs?.xOffset || 0) === 0 : editor?.isActive({ textAlign: 'center' }),
+        },
+        {
+          icon: AlignRight,
+          action: () => setImageOrTextAlign('right'),
+          active: editor?.isActive('image') ? imageAttrs?.align === 'right' && Number(imageAttrs?.xOffset || 0) === 0 : editor?.isActive({ textAlign: 'right' }),
+        },
+        {
+          icon: AlignJustify,
+          action: () => setImageOrTextAlign('justify'),
+          active: editor?.isActive('image') ? imageAttrs?.align === 'center' && Number(imageAttrs?.xOffset || 0) === 0 : editor?.isActive({ textAlign: 'justify' }),
+        },
+      ],
+    },
   ];
 
   const handleAddImage = () => {
@@ -232,7 +326,7 @@ export default function EditorPage() {
 
   const handleInsertImage = () => {
     if (imageUrl.trim()) {
-      editor?.chain().focus().setImage({ src: imageUrl.trim() }).run();
+      editor?.chain().focus().setImage({ src: imageUrl.trim(), width: 360 }).updateAttributes('image', { align: 'left', xOffset: 0 }).run();
     }
     setShowImageModal(false);
     setImageUrl('');
@@ -355,6 +449,30 @@ export default function EditorPage() {
               <div className="w-px h-6 bg-divider mx-1" />
             </div>
           ))}
+
+          <select
+            value={activeFontFamily}
+            onChange={e => {
+              const nextFont = e.target.value;
+              if (nextFont === '__default__') {
+                editor?.chain().focus().unsetFontFamily().run();
+                return;
+              }
+              editor?.chain().focus().setFontFamily(nextFont).run();
+              store.setEditorFont(nextFont);
+            }}
+            className="h-8 min-w-[150px] bg-bg-primary border border-divider rounded-md px-2 text-xs text-text-primary focus:outline-none focus:border-accent"
+            title="Editor Font"
+          >
+            <option value="__default__">Default</option>
+            {editorFonts.map(font => (
+              <option key={font} value={font} style={{ fontFamily: font }}>
+                {font}
+              </option>
+            ))}
+          </select>
+
+          <div className="w-px h-6 bg-divider mx-1" />
 
           {/* View & Tools */}
           <button className="w-9 h-9 rounded-lg hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors" title="Find">
@@ -517,13 +635,13 @@ export default function EditorPage() {
 
         {/* Center — Writing Canvas */}
         <div className="flex-1 overflow-y-auto relative" onClick={() => { setContextMenu(null); if (focusMode) setFocusMode(false); }}>
-          <div className={`max-w-[720px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12 min-h-full ${previewMode ? 'font-reader' : ''}`}>
+          <div className={`w-full px-4 sm:px-6 md:px-8 py-8 md:py-12 min-h-full ${previewMode ? 'font-reader' : ''}`} style={{ fontSize: `${store.editorFontSize}px` }}>
             {activeChapter && (
               <h1 className="font-display text-2xl font-bold text-accent mb-8 border-b border-divider/50 pb-4">
                 {activeChapter.title}
               </h1>
             )}
-            <EditorContent editor={editor} />
+            <EditorContent editor={editor} className="w-full" />
           </div>
         </div>
 
