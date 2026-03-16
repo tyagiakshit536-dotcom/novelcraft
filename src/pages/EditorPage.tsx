@@ -60,6 +60,9 @@ export default function EditorPage() {
   const [showTranslate, setShowTranslate] = useState(false);
   const [imageUploadError, setImageUploadError] = useState('');
   const [coverUploadError, setCoverUploadError] = useState('');
+  const [persistentTextAlign, setPersistentTextAlign] = useState<'left' | 'center' | 'right' | 'justify' | null>(null);
+  const [creatingFallbackNovel, setCreatingFallbackNovel] = useState(false);
+  const [fallbackCreateError, setFallbackCreateError] = useState('');
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const imageFileInputRef = useRef<HTMLInputElement | null>(null);
   const coverFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -134,6 +137,28 @@ export default function EditorPage() {
     }
   }, [activeChapter?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Keep selected text alignment active across cursor moves and new paragraphs
+  // until the user toggles it off manually.
+  useEffect(() => {
+    if (!editor || !persistentTextAlign) return;
+
+    const enforceAlignment = () => {
+      if (editor.isActive('image')) return;
+      if (!editor.isActive({ textAlign: persistentTextAlign })) {
+        editor.commands.setTextAlign(persistentTextAlign);
+      }
+    };
+
+    enforceAlignment();
+    editor.on('selectionUpdate', enforceAlignment);
+    editor.on('transaction', enforceAlignment);
+
+    return () => {
+      editor.off('selectionUpdate', enforceAlignment);
+      editor.off('transaction', enforceAlignment);
+    };
+  }, [editor, persistentTextAlign, activeChapter?.id]);
+
   // Auto-save indicator
   const showSaved = useCallback(() => {
     setSavedIndicator(true);
@@ -176,15 +201,25 @@ export default function EditorPage() {
             Go to Library
           </button>
           <button
-            onClick={() => {
-              const n = store.createNovel('Untitled Novel', '', []);
-              navigate('/editor', { state: { novelId: n.id }, replace: true });
+            onClick={async () => {
+              setFallbackCreateError('');
+              setCreatingFallbackNovel(true);
+              try {
+                const n = await store.createNovel('Untitled Novel', '', []);
+                navigate('/editor', { state: { novelId: n.id }, replace: true });
+              } catch (err: unknown) {
+                setFallbackCreateError(err instanceof Error ? err.message : 'Unable to create a new novel right now.');
+              } finally {
+                setCreatingFallbackNovel(false);
+              }
             }}
+            disabled={creatingFallbackNovel}
             className="px-5 py-2.5 btn btn-primary rounded-xl font-semibold"
           >
-            Create New Novel
+            {creatingFallbackNovel ? 'Creating...' : 'Create New Novel'}
           </button>
         </div>
+        {fallbackCreateError && <p className="text-sm text-error px-4 text-center">{fallbackCreateError}</p>}
       </div>
     );
   }
@@ -256,6 +291,14 @@ export default function EditorPage() {
       editor.chain().focus().updateAttributes('image', { align: imageAlign, xOffset: 0 }).run();
       return;
     }
+    const isSameAsPersistent = persistentTextAlign === align;
+    if (isSameAsPersistent) {
+      setPersistentTextAlign(null);
+      editor.chain().focus().setTextAlign('left').run();
+      return;
+    }
+
+    setPersistentTextAlign(align);
     editor.chain().focus().setTextAlign(align).run();
   };
 
@@ -293,22 +336,30 @@ export default function EditorPage() {
         {
           icon: AlignLeft,
           action: () => setImageOrTextAlign('left'),
-          active: editor?.isActive('image') ? imageAttrs?.align === 'left' && Number(imageAttrs?.xOffset || 0) === 0 : editor?.isActive({ textAlign: 'left' }),
+          active: editor?.isActive('image')
+            ? imageAttrs?.align === 'left' && Number(imageAttrs?.xOffset || 0) === 0
+            : persistentTextAlign === 'left',
         },
         {
           icon: AlignCenter,
           action: () => setImageOrTextAlign('center'),
-          active: editor?.isActive('image') ? imageAttrs?.align === 'center' && Number(imageAttrs?.xOffset || 0) === 0 : editor?.isActive({ textAlign: 'center' }),
+          active: editor?.isActive('image')
+            ? imageAttrs?.align === 'center' && Number(imageAttrs?.xOffset || 0) === 0
+            : persistentTextAlign === 'center',
         },
         {
           icon: AlignRight,
           action: () => setImageOrTextAlign('right'),
-          active: editor?.isActive('image') ? imageAttrs?.align === 'right' && Number(imageAttrs?.xOffset || 0) === 0 : editor?.isActive({ textAlign: 'right' }),
+          active: editor?.isActive('image')
+            ? imageAttrs?.align === 'right' && Number(imageAttrs?.xOffset || 0) === 0
+            : persistentTextAlign === 'right',
         },
         {
           icon: AlignJustify,
           action: () => setImageOrTextAlign('justify'),
-          active: editor?.isActive('image') ? imageAttrs?.align === 'center' && Number(imageAttrs?.xOffset || 0) === 0 : editor?.isActive({ textAlign: 'justify' }),
+          active: editor?.isActive('image')
+            ? imageAttrs?.align === 'center' && Number(imageAttrs?.xOffset || 0) === 0
+            : persistentTextAlign === 'justify',
         },
       ],
     },
@@ -391,6 +442,63 @@ export default function EditorPage() {
     const plain = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     if (!plain) return 0;
     return plain.split(' ').length;
+  };
+
+  const applyActiveChapterHtml = (nextHtml: string) => {
+    if (!activeChapter) return;
+    const volume = novel.volumes.find(v => v.id === activeChapter.volumeId);
+    if (!volume) return;
+    editor?.commands.setContent(nextHtml || '');
+    store.updateChapter(novel.id, volume.id, activeChapter.id, {
+      content: nextHtml,
+      wordCount: countWordsFromHtml(nextHtml),
+    });
+  };
+
+  const appendToActiveChapterHtml = (appendHtml: string) => {
+    if (!activeChapter || !appendHtml) return;
+    const currentHtml = editor?.getHTML() || activeChapter.content || '';
+    const nextHtml = currentHtml && currentHtml !== '<p></p>' ? `${currentHtml}${appendHtml}` : appendHtml;
+    applyActiveChapterHtml(nextHtml);
+  };
+
+  const prependToActiveChapterHtml = (prependHtml: string) => {
+    if (!activeChapter || !prependHtml) return;
+    const currentHtml = editor?.getHTML() || activeChapter.content || '';
+    const nextHtml = currentHtml && currentHtml !== '<p></p>' ? `${prependHtml}${currentHtml}` : prependHtml;
+    applyActiveChapterHtml(nextHtml);
+  };
+
+  const renameActiveChapter = (nextTitle: string) => {
+    if (!activeChapter || !nextTitle.trim()) return;
+    const volume = novel.volumes.find(v => v.id === activeChapter.volumeId);
+    if (!volume) return;
+    store.updateChapter(novel.id, volume.id, activeChapter.id, { title: nextTitle.trim() });
+  };
+
+  const renameVolumeByIndex = (index1Based: number, nextTitle: string): boolean => {
+    const volume = novel.volumes.find(v => v.orderIndex === index1Based - 1);
+    if (!volume || !nextTitle.trim()) return false;
+    store.updateVolume(novel.id, volume.id, { title: nextTitle.trim() });
+    return true;
+  };
+
+  const renameVolumeByTitle = (currentTitle: string, nextTitle: string): boolean => {
+    const target = currentTitle.trim().toLowerCase();
+    const volume = novel.volumes.find(v => v.title.trim().toLowerCase() === target);
+    if (!volume || !nextTitle.trim()) return false;
+    store.updateVolume(novel.id, volume.id, { title: nextTitle.trim() });
+    return true;
+  };
+
+  const findReplaceInActiveChapter = (findText: string, replaceText: string): number => {
+    if (!activeChapter || !findText) return 0;
+    const currentHtml = editor?.getHTML() || activeChapter.content || '';
+    if (!currentHtml.includes(findText)) return 0;
+    const replacements = currentHtml.split(findText).length - 1;
+    const nextHtml = currentHtml.split(findText).join(replaceText);
+    applyActiveChapterHtml(nextHtml);
+    return replacements;
   };
 
   const escapeHtml = (value: string): string => value
@@ -910,7 +1018,37 @@ export default function EditorPage() {
       )}
 
       {/* AI Assistant */}
-      <AIAssistant isOpen={showAI} onClose={() => setShowAI(false)} />
+      <AIAssistant
+        isOpen={showAI}
+        onClose={() => setShowAI(false)}
+        editorApi={novel && activeChapter ? {
+          enabled: true,
+          novelTitle: novel.title,
+          activeChapterTitle: activeChapter.title,
+          activeChapterContent: editor?.getHTML() || activeChapter.content || '',
+          volumes: novel.volumes.map(v => ({ id: v.id, title: v.title, orderIndex: v.orderIndex })),
+          replaceActiveChapterHtml: applyActiveChapterHtml,
+          appendActiveChapterHtml: appendToActiveChapterHtml,
+          prependActiveChapterHtml: prependToActiveChapterHtml,
+          renameActiveChapter,
+          renameVolumeByIndex,
+          renameVolumeByTitle,
+          findReplaceInActiveChapter,
+        } : {
+          enabled: false,
+          novelTitle: '',
+          activeChapterTitle: '',
+          activeChapterContent: '',
+          volumes: [],
+          replaceActiveChapterHtml: () => {},
+          appendActiveChapterHtml: () => {},
+          prependActiveChapterHtml: () => {},
+          renameActiveChapter: () => {},
+          renameVolumeByIndex: () => false,
+          renameVolumeByTitle: () => false,
+          findReplaceInActiveChapter: () => 0,
+        }}
+      />
 
       {/* Translate Panel */}
       <TranslatePanel isOpen={showTranslate} onClose={() => setShowTranslate(false)} content={editor?.getHTML() || ''} />

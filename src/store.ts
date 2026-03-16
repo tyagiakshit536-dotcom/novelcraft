@@ -209,7 +209,7 @@ interface AppState {
   markNotificationRead: (notificationId: string) => void;
   markAllNotificationsRead: () => void;
 
-  createNovel: (title: string, synopsis: string, genreTags: string[], mode?: 'modern' | 'primitive') => Novel;
+  createNovel: (title: string, synopsis: string, genreTags: string[], mode?: 'modern' | 'primitive') => Promise<Novel>;
   updateNovel: (novelId: string, updates: Partial<Novel>) => void;
   deleteNovel: (novelId: string) => void;
   publishNovel: (novelId: string, authorName: string, synopsis: string, genreTags: string[], ageRating: 'all' | 'teen' | 'mature', mode: 'public' | 'unlisted' | 'upcoming') => void;
@@ -396,11 +396,25 @@ export const useStore = create<AppState>()(
           const filteredSamples = sampleNovels.filter(s => !dbNovelIds.has(s.id));
           const discoveryNovels = [...publishedNovels, ...filteredSamples];
 
-          // Keep local optimistic novels so they don't disappear while backend consistency catches up.
+          // Merge server novels with local state to prevent stale loads from wiping
+          // out newly created or recently edited drafts.
           set((s) => {
             const serverIds = new Set(userNovels.map(n => n.id));
-            const optimisticLocal = s.userNovels.filter(n => n.id.startsWith('temp-') && !serverIds.has(n.id));
-            const mergedUserNovels = [...userNovels, ...optimisticLocal];
+            const localById = new Map(s.userNovels.map(n => [n.id, n]));
+
+            const mergedFromServer = userNovels.map((serverNovel) => {
+              const localNovel = localById.get(serverNovel.id);
+              if (!localNovel) return serverNovel;
+              const localUpdatedAt = Date.parse(localNovel.updatedAt || '');
+              const serverUpdatedAt = Date.parse(serverNovel.updatedAt || '');
+              return Number.isFinite(localUpdatedAt) && Number.isFinite(serverUpdatedAt) && localUpdatedAt > serverUpdatedAt
+                ? localNovel
+                : serverNovel;
+            });
+
+            const localOnlyNovels = s.userNovels.filter(n => !serverIds.has(n.id) && n.authorId === userId);
+            const mergedUserNovels = [...mergedFromServer, ...localOnlyNovels];
+
             return {
               userNovels: mergedUserNovels,
               novels: discoveryNovels,
@@ -519,115 +533,20 @@ export const useStore = create<AppState>()(
 
       // ─── Novel CRUD ───
 
-      createNovel: (title, synopsis, genreTags, mode = 'modern') => {
+      createNovel: async (title, synopsis, genreTags, mode = 'modern') => {
         const user = get().currentUser;
-        const id = tempId();
-        const volumeId = tempId();
-        const chapterId = tempId();
-        const novel: Novel = {
-          id,
-          authorId: user?.id || '',
-          authorName: user?.displayName || 'Anonymous',
-          mode,
-          title,
-          synopsis,
-          coverImageUrl: '',
-          visualDNA: { seed: Math.floor(Math.random() * 999999) + 100000, physicalDescription: '' },
-          genreTags,
-          language: 'English',
-          ageRating: 'all',
-          status: 'draft',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          totalReads: 0,
-          totalWords: 0,
-          ratingAvg: 0,
-          ratingCount: 0,
-          isUnlisted: false,
-          volumes: [{
-            id: volumeId,
-            novelId: id,
-            title: 'Volume I',
-            bannerImageUrl: '',
-            orderIndex: 0,
-            createdAt: new Date().toISOString(),
-            chapters: [{
-              id: chapterId,
-              volumeId,
-              novelId: id,
-              title: 'Chapter 1: Untitled',
-              content: '',
-              bannerImageUrl: '',
-              orderIndex: 0,
-              wordCount: 0,
-              status: 'draft',
-              publishedAt: '',
-              readCount: 0,
-            }],
-          }],
-        };
-        set(s => ({ userNovels: [...s.userNovels, novel], activeNovelId: id, activeChapterId: chapterId }));
-
-        // Persist to Supabase, then swap temp IDs with real ones
-        if (user?.id) {
-          novelService.createNovel(user.id, user.displayName, title, synopsis, genreTags, mode).then(realNovel => {
-            set(s => {
-              const tempNovel = s.userNovels.find(n => n.id === id);
-              const mergedRealNovel = tempNovel
-                ? {
-                    ...realNovel,
-                    synopsis: tempNovel.synopsis,
-                    coverImageUrl: tempNovel.coverImageUrl,
-                    genreTags: tempNovel.genreTags,
-                    ageRating: tempNovel.ageRating,
-                    isUnlisted: tempNovel.isUnlisted,
-                    status: tempNovel.status,
-                    updatedAt: tempNovel.updatedAt,
-                  }
-                : realNovel;
-
-              const realChapterId = realNovel.volumes[0]?.chapters[0]?.id;
-              const hasTempNovel = s.userNovels.some(n => n.id === id);
-              const hasActiveNovel = !!s.activeNovelId && s.userNovels.some(n => n.id === s.activeNovelId);
-
-              const remapNovelId = (novelId: string) => (novelId === id ? realNovel.id : novelId);
-              const nextNovelLikes = { ...s.novelLikes };
-              if (Object.prototype.hasOwnProperty.call(nextNovelLikes, id)) {
-                nextNovelLikes[realNovel.id] = nextNovelLikes[id];
-                delete nextNovelLikes[id];
-              }
-
-              return {
-                userNovels: hasTempNovel
-                  ? s.userNovels.map(n => n.id === id ? mergedRealNovel : n)
-                  : [mergedRealNovel, ...s.userNovels.filter(n => n.id !== realNovel.id)],
-                activeNovelId: (s.activeNovelId === id || !hasActiveNovel) ? realNovel.id : s.activeNovelId,
-                activeChapterId: (s.activeChapterId === chapterId || !s.activeChapterId) ? (realChapterId || s.activeChapterId) : s.activeChapterId,
-                upcomingNovelIds: s.upcomingNovelIds.map(remapNovelId),
-                readLaterNovelIds: s.readLaterNovelIds.map(remapNovelId),
-                likedNovelIds: s.likedNovelIds.map(remapNovelId),
-                novelLikes: nextNovelLikes,
-                playlists: s.playlists.map(p => ({
-                  ...p,
-                  coverNovelId: p.coverNovelId ? remapNovelId(p.coverNovelId) : null,
-                  novelIds: p.novelIds.map(remapNovelId),
-                })),
-              };
-            });
-
-            const synced = get().userNovels.find(n => n.id === realNovel.id);
-            if (synced) {
-              novelService.updateNovel(realNovel.id, {
-                synopsis: synced.synopsis,
-                coverImageUrl: synced.coverImageUrl,
-                genreTags: synced.genreTags,
-                ageRating: synced.ageRating,
-                isUnlisted: synced.isUnlisted,
-                status: synced.status,
-              }).catch(console.error);
-            }
-          }).catch(console.error);
+        if (!user?.id) {
+          throw new Error('You must be logged in to create a novel.');
         }
+
+        const novel = await novelService.createNovel(user.id, user.displayName, title, synopsis, genreTags, mode);
+        const firstChapterId = novel.volumes[0]?.chapters[0]?.id ?? null;
+
+        set(s => ({
+          userNovels: [novel, ...s.userNovels.filter(n => n.id !== novel.id)],
+          activeNovelId: novel.id,
+          activeChapterId: firstChapterId,
+        }));
 
         return novel;
       },

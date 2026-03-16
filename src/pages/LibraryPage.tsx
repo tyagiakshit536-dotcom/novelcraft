@@ -17,6 +17,8 @@ export default function LibraryPage() {
   const [showNewNovelModal, setShowNewNovelModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newMode, setNewMode] = useState<'modern' | 'primitive'>('modern');
+  const [creatingNovel, setCreatingNovel] = useState(false);
+  const [createError, setCreateError] = useState('');
   const [deleteCandidate, setDeleteCandidate] = useState<Novel | null>(null);
 
   // Close context menu on click outside
@@ -40,13 +42,21 @@ export default function LibraryPage() {
     return true;
   });
 
-  const handleCreateNovel = () => {
+  const handleCreateNovel = async () => {
     if (!newTitle.trim()) return;
-    const novel = createNovel(newTitle.trim(), '', [], newMode);
-    setShowNewNovelModal(false);
-    setNewTitle('');
-    setNewMode('modern');
-    navigate('/editor', { state: { novelId: novel.id } });
+    setCreateError('');
+    setCreatingNovel(true);
+    try {
+      const novel = await createNovel(newTitle.trim(), '', [], newMode);
+      setShowNewNovelModal(false);
+      setNewTitle('');
+      setNewMode('modern');
+      navigate('/editor', { state: { novelId: novel.id } });
+    } catch (err: unknown) {
+      setCreateError(err instanceof Error ? err.message : 'Unable to create novel right now. Please try again.');
+    } finally {
+      setCreatingNovel(false);
+    }
   };
 
   const handleContextAction = (novel: Novel, action: string) => {
@@ -283,7 +293,7 @@ export default function LibraryPage() {
 
       {/* New Novel Modal */}
       {showNewNovelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowNewNovelModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => !creatingNovel && setShowNewNovelModal(false)}>
           <div className="glass-card p-5 sm:p-8 max-w-md w-full animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display text-2xl font-bold mb-6">Create New Novel</h2>
             <input
@@ -292,12 +302,14 @@ export default function LibraryPage() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateNovel()}
+              disabled={creatingNovel}
               autoFocus
               className="w-full px-4 py-3 bg-bg-primary rounded-xl border border-divider focus:border-accent focus:outline-none text-text-primary placeholder:text-text-secondary/50 text-lg mb-6"
             />
             <div className="grid grid-cols-2 gap-3 mb-6">
               <button
                 onClick={() => setNewMode('modern')}
+                disabled={creatingNovel}
                 className={`px-4 py-3 rounded-xl border text-sm font-semibold transition-colors ${
                   newMode === 'modern'
                     ? 'border-accent bg-accent/15 text-accent'
@@ -308,6 +320,7 @@ export default function LibraryPage() {
               </button>
               <button
                 onClick={() => setNewMode('primitive')}
+                disabled={creatingNovel}
                 className={`px-4 py-3 rounded-xl border text-sm font-semibold transition-colors ${
                   newMode === 'primitive'
                     ? 'border-[#FF8A6B] bg-[#FF8A6B]/15 text-[#FF8A6B]'
@@ -317,12 +330,21 @@ export default function LibraryPage() {
                 Primitive
               </button>
             </div>
+            {createError && <p className="text-sm text-error mb-4">{createError}</p>}
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowNewNovelModal(false)} className="px-5 py-2.5 text-text-secondary hover:text-text-primary transition-colors">
+              <button
+                onClick={() => setShowNewNovelModal(false)}
+                disabled={creatingNovel}
+                className="px-5 py-2.5 text-text-secondary hover:text-text-primary transition-colors disabled:opacity-50"
+              >
                 Cancel
               </button>
-              <button onClick={handleCreateNovel} className="px-6 py-2.5 btn btn-primary rounded-xl font-semibold">
-                Create Novel
+              <button
+                onClick={handleCreateNovel}
+                disabled={!newTitle.trim() || creatingNovel}
+                className="px-6 py-2.5 btn btn-primary rounded-xl font-semibold disabled:opacity-50"
+              >
+                {creatingNovel ? 'Creating...' : 'Create'}
               </button>
             </div>
           </div>

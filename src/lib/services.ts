@@ -68,7 +68,7 @@ function mapNovelFromDb(n: Record<string, unknown>, volumes: Volume[]): Novel {
     totalWords: n.total_words as number,
     ratingAvg: Number(n.rating_avg) || 0,
     ratingCount: n.rating_count as number,
-    isUnlisted: n.is_unlisted as boolean,
+    isUnlisted: Boolean(n.is_unlisted),
     volumes,
   };
 }
@@ -344,13 +344,15 @@ export const profileService = {
 export const novelService = {
   /** Fetch all published (non-unlisted) novels for the discovery feed */
   async getPublishedNovels(): Promise<Novel[]> {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('novels')
       .select('*')
       .eq('status', 'published')
-      .eq('is_unlisted', false)
+      // Accept both explicit false and legacy null values for old rows.
+      .or('is_unlisted.eq.false,is_unlisted.is.null')
       .order('updated_at', { ascending: false })
       .order('created_at', { ascending: false });
+    if (error) throw error;
     return assembleNovels(data || []);
   },
 

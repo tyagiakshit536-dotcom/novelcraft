@@ -211,7 +211,7 @@ create policy "Users can update own profile" on public.profiles for update using
 create policy "Users can insert own profile" on public.profiles for insert with check (auth.uid() = id);
 
 -- Novels: published novels are public, users can CRUD their own
-create policy "Published novels are viewable by everyone" on public.novels for select using (status = 'published' and is_unlisted = false);
+create policy "Published novels are viewable by everyone" on public.novels for select using (status = 'published' and coalesce(is_unlisted, false) = false);
 create policy "Authors can view own novels" on public.novels for select using (auth.uid() = author_id);
 create policy "Authors can insert own novels" on public.novels for insert with check (auth.uid() = author_id);
 create policy "Authors can update own novels" on public.novels for update using (auth.uid() = author_id);
@@ -219,7 +219,14 @@ create policy "Authors can delete own novels" on public.novels for delete using 
 
 -- Volumes: viewable if novel is accessible, editable by novel author
 create policy "Volumes are viewable with novel" on public.volumes for select using (
-  exists (select 1 from public.novels n where n.id = novel_id and (n.author_id = auth.uid() or (n.status = 'published')))
+  exists (
+    select 1 from public.novels n
+    where n.id = novel_id
+      and (
+        n.author_id = auth.uid()
+        or (n.status = 'published' and coalesce(n.is_unlisted, false) = false)
+      )
+  )
 );
 create policy "Authors can manage volumes" on public.volumes for insert with check (
   exists (select 1 from public.novels n where n.id = novel_id and n.author_id = auth.uid())
@@ -233,7 +240,14 @@ create policy "Authors can delete volumes" on public.volumes for delete using (
 
 -- Chapters: same pattern as volumes
 create policy "Chapters are viewable with novel" on public.chapters for select using (
-  exists (select 1 from public.novels n where n.id = novel_id and (n.author_id = auth.uid() or (n.status = 'published')))
+  exists (
+    select 1 from public.novels n
+    where n.id = novel_id
+      and (
+        n.author_id = auth.uid()
+        or (n.status = 'published' and coalesce(n.is_unlisted, false) = false)
+      )
+  )
 );
 create policy "Authors can manage chapters" on public.chapters for insert with check (
   exists (select 1 from public.novels n where n.id = novel_id and n.author_id = auth.uid())
