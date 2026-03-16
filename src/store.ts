@@ -539,7 +539,18 @@ export const useStore = create<AppState>()(
           throw new Error('You must be logged in to create a novel.');
         }
 
-        const novel = await novelService.createNovel(user.id, user.displayName, title, synopsis, genreTags, mode);
+        let novel;
+        try {
+          novel = await novelService.createNovel(user.id, user.displayName, title, synopsis, genreTags, mode);
+        } catch (err: unknown) {
+          if (err instanceof Error) throw err;
+          if (err && typeof err === 'object' && 'message' in err) {
+            const msg = (err as { message?: unknown }).message;
+            if (typeof msg === 'string' && msg.trim()) throw new Error(msg);
+          }
+          throw new Error('Failed to create novel. Please check your database permissions and schema.');
+        }
+
         const firstChapterId = novel.volumes[0]?.chapters[0]?.id ?? null;
 
         set(s => ({

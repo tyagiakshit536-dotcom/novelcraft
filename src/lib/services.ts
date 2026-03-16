@@ -4,6 +4,15 @@ import type {
   Review, Comment, ReadingListItem, CharacterEntry, WorldEntry, Notification,
 } from '../types';
 
+function toAppError(err: unknown, fallbackMessage: string): Error {
+  if (err instanceof Error) return err;
+  if (err && typeof err === 'object' && 'message' in err) {
+    const msg = (err as { message?: unknown }).message;
+    if (typeof msg === 'string' && msg.trim()) return new Error(msg);
+  }
+  return new Error(fallbackMessage);
+}
+
 // ─── Mappers: DB (snake_case) <-> App (camelCase) ───
 
 function mapProfileToUser(p: Record<string, unknown>): User {
@@ -381,26 +390,61 @@ export const novelService = {
     genreTags: string[],
     mode: 'modern' | 'primitive' = 'modern'
   ): Promise<Novel> {
-    const { data: novelRow, error: nErr } = await supabase
-      .from('novels')
-      .insert({ author_id: userId, author_name: authorName, novel_mode: mode, title, synopsis, genre_tags: genreTags })
-      .select()
-      .single();
-    if (nErr || !novelRow) throw nErr || new Error('Failed to create novel');
+    let novelRow: Record<string, unknown> | null = null;
+    let nErr: unknown = null;
+
+    // Primary insert path (current schema)
+    {
+      const { data, error } = await supabase
+        .from('novels')
+        .insert({ author_id: userId, author_name: authorName, novel_mode: mode, title, synopsis, genre_tags: genreTags })
+        .select()
+        .single();
+      novelRow = data;
+      nErr = error;
+    }
+
+    // Fallback for older DBs that don't have novel_mode yet.
+    const shouldRetryWithoutMode = !!nErr
+      && typeof nErr === 'object'
+      && (
+        (nErr as { code?: string }).code === '42703'
+        || String((nErr as { message?: unknown }).message || '').toLowerCase().includes('novel_mode')
+      );
+
+    if (shouldRetryWithoutMode) {
+      const { data, error } = await supabase
+        .from('novels')
+        .insert({ author_id: userId, author_name: authorName, title, synopsis, genre_tags: genreTags })
+        .select()
+        .single();
+      novelRow = data;
+      nErr = error;
+    }
+
+    if (nErr || !novelRow) throw toAppError(nErr, 'Failed to create novel');
 
     const { data: volRow, error: vErr } = await supabase
       .from('volumes')
       .insert({ novel_id: novelRow.id, title: 'Volume I', order_index: 0 })
       .select()
       .single();
-    if (vErr || !volRow) throw vErr || new Error('Failed to create volume');
+    if (vErr || !volRow) {
+      // Avoid leaving orphan novels if child inserts fail.
+      await supabase.from('novels').delete().eq('id', novelRow.id as string);
+      throw toAppError(vErr, 'Failed to create volume');
+    }
 
     const { data: chRow, error: cErr } = await supabase
       .from('chapters')
       .insert({ volume_id: volRow.id, novel_id: novelRow.id, title: 'Chapter 1: Untitled', order_index: 0 })
       .select()
       .single();
-    if (cErr || !chRow) throw cErr || new Error('Failed to create chapter');
+    if (cErr || !chRow) {
+      // Cascade deletes volume/chapter by FK if novel exists.
+      await supabase.from('novels').delete().eq('id', novelRow.id as string);
+      throw toAppError(cErr, 'Failed to create chapter');
+    }
 
     const chapter = mapChapterFromDb(chRow);
     const volume = mapVolumeFromDb(volRow, [chapter]);
