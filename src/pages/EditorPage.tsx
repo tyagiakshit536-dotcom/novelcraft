@@ -60,7 +60,7 @@ export default function EditorPage() {
   const [showTranslate, setShowTranslate] = useState(false);
   const [imageUploadError, setImageUploadError] = useState('');
   const [coverUploadError, setCoverUploadError] = useState('');
-  const [persistentTextAlign, setPersistentTextAlign] = useState<'left' | 'center' | 'right' | 'justify' | null>(null);
+  const [persistentTextAlign, setPersistentTextAlign] = useState<'left' | 'center' | 'right' | 'justify' | null>('center');
   const [creatingFallbackNovel, setCreatingFallbackNovel] = useState(false);
   const [fallbackCreateError, setFallbackCreateError] = useState('');
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
