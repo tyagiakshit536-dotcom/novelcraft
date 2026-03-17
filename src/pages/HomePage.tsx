@@ -278,7 +278,8 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, [heroBanners.length]);
 
-  const heroNovel = heroBanners[heroIndex];
+  const boundedHeroIndex = heroBanners.length ? Math.min(heroIndex, heroBanners.length - 1) : 0;
+  const heroNovel = heroBanners[boundedHeroIndex];
 
   return (
     <div className="min-h-[200vh] pb-20 animate-fade-in">
@@ -286,7 +287,7 @@ export default function HomePage() {
       {heroNovel && (
         <section className="relative h-[72vh] sm:h-[80vh] min-h-[420px] sm:min-h-[500px] max-h-[800px] mb-4">
           {heroBanners.map((novel, i) => (
-            <div key={novel.id} className={`absolute inset-0 transition-all duration-1000 ${i === heroIndex ? 'opacity-100' : 'opacity-0'}`}>
+            <div key={novel.id} className={`absolute inset-0 transition-all duration-1000 ${i === boundedHeroIndex ? 'opacity-100' : 'opacity-0'}`}>
               {novel.coverImageUrl ? (
                 <img src={novel.coverImageUrl} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -339,7 +340,7 @@ export default function HomePage() {
           {/* Billboard indicator dots */}
           <div className="absolute bottom-6 right-4 lg:right-12 flex items-center gap-1 z-10">
             {heroBanners.map((_, i) => (
-              <button key={i} onClick={() => setHeroIndex(i)} className={`h-0.5 rounded-full transition-all duration-300 ${i === heroIndex ? 'w-6 bg-accent' : 'w-3 bg-white/30'}`} />
+              <button key={i} onClick={() => setHeroIndex(i)} className={`h-0.5 rounded-full transition-all duration-300 ${i === boundedHeroIndex ? 'w-6 bg-accent' : 'w-3 bg-white/30'}`} />
             ))}
           </div>
         </section>

@@ -32,40 +32,30 @@ export default function NovelDetailPage() {
   const [reviewText, setReviewText] = useState('');
   const [showPlaylistPicker, setShowPlaylistPicker] = useState(false);
   const [fallbackNovel, setFallbackNovel] = useState<Novel | null>(null);
-  const [isResolvingNovel, setIsResolvingNovel] = useState(true);
+  const [resolvedNovelId, setResolvedNovelId] = useState<string | null>(null);
 
   const storeNovel = [...novels, ...userNovels].find(n => n.id === novelId);
 
   useEffect(() => {
     let active = true;
 
-    if (storeNovel) {
-      setFallbackNovel(null);
-      setIsResolvingNovel(false);
+    if (storeNovel || !novelId) {
       return () => {
         active = false;
       };
     }
 
-    if (!novelId) {
-      setIsResolvingNovel(false);
-      return () => {
-        active = false;
-      };
-    }
-
-    setIsResolvingNovel(true);
     novelService
       .getNovel(novelId)
       .then((n) => {
         if (!active) return;
         setFallbackNovel(n);
-        setIsResolvingNovel(false);
+        setResolvedNovelId(novelId);
       })
       .catch(() => {
         if (!active) return;
         setFallbackNovel(null);
-        setIsResolvingNovel(false);
+        setResolvedNovelId(novelId);
       });
 
     return () => {
@@ -73,7 +63,8 @@ export default function NovelDetailPage() {
     };
   }, [novelId, storeNovel]);
 
-  const novel = storeNovel || fallbackNovel;
+  const novel = storeNovel || (resolvedNovelId === novelId ? fallbackNovel : null);
+  const isResolvingNovel = !!novelId && !storeNovel && resolvedNovelId !== novelId;
 
   if (isResolvingNovel && !novel) return (
     <div className="flex items-center justify-center h-screen">
@@ -96,6 +87,7 @@ export default function NovelDetailPage() {
   const totalChapters = novel.volumes.reduce((sum, v) => sum + v.chapters.length, 0);
   const estimatedReadTime = Math.ceil(novel.totalWords / 250);
   const isPrimitive = novel.mode === 'primitive';
+  const firstReadableChapter = novel.volumes.flatMap(v => v.chapters)[0] || null;
 
   const toggleVolume = (volId: string) => {
     setExpandedVolumes(prev => {
@@ -113,15 +105,18 @@ export default function NovelDetailPage() {
   };
 
   const handleStartReading = () => {
-    const firstChapter = novel.volumes[0]?.chapters[0];
-    if (firstChapter) {
-      navigate(`/read/${novel.id}/${firstChapter.id}`);
-    }
+    if (!firstReadableChapter) return;
+    navigate(`/read/${novel.id}/${firstReadableChapter.id}`);
   };
 
   const handleContinueReading = () => {
     if (progress) {
-      navigate(`/read/${novel.id}/${progress.chapterId}`);
+      const hasProgressChapter = novel.volumes.some(v => v.chapters.some(ch => ch.id === progress.chapterId));
+      if (hasProgressChapter) {
+        navigate(`/read/${novel.id}/${progress.chapterId}`);
+        return;
+      }
+      handleStartReading();
     } else {
       handleStartReading();
     }
@@ -179,11 +174,11 @@ export default function NovelDetailPage() {
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {progress ? (
-              <button onClick={handleContinueReading} className="px-6 sm:px-8 py-2.5 sm:py-3 btn btn-primary rounded-full font-semibold">
+              <button onClick={handleContinueReading} disabled={!firstReadableChapter} className="px-6 sm:px-8 py-2.5 sm:py-3 btn btn-primary rounded-full font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
                 Continue Reading
               </button>
             ) : (
-              <button onClick={handleStartReading} className="px-6 sm:px-8 py-2.5 sm:py-3 btn btn-primary rounded-full font-semibold">
+              <button onClick={handleStartReading} disabled={!firstReadableChapter} className="px-6 sm:px-8 py-2.5 sm:py-3 btn btn-primary rounded-full font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
                 Start Reading
               </button>
             )}

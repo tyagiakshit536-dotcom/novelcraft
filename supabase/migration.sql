@@ -92,6 +92,31 @@ create table if not exists public.reading_progress (
   unique(user_id, novel_id)
 );
 
+-- Ensure reading progress cannot reference deleted or missing chapters.
+delete from public.reading_progress rp
+where not exists (
+  select 1
+  from public.chapters c
+  where c.id = rp.chapter_id
+);
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'reading_progress_chapter_id_fkey'
+      and conrelid = 'public.reading_progress'::regclass
+  ) then
+    alter table public.reading_progress
+      add constraint reading_progress_chapter_id_fkey
+      foreign key (chapter_id)
+      references public.chapters(id)
+      on delete cascade;
+  end if;
+end
+$$;
+
 -- 6. Reading List
 create table if not exists public.reading_list (
   id uuid primary key default gen_random_uuid(),

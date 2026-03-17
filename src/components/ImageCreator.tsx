@@ -1,7 +1,22 @@
 import { useState, useRef } from 'react';
-import { Wand2, Plus, Trash2, Download, GripVertical, Dna, Image as ImageIcon, RefreshCw, X, Copy } from 'lucide-react';
+import { Wand2, Plus, Trash2, GripVertical, Dna, Image as ImageIcon, RefreshCw } from 'lucide-react';
 import { useStore } from '../store';
 import type { VisualDNA } from '../types';
+
+function deriveSeedFromNovelId(novelId: string): number {
+  let hash = 0;
+  for (let i = 0; i < novelId.length; i += 1) {
+    hash = ((hash << 5) - hash) + novelId.charCodeAt(i);
+    hash |= 0;
+  }
+  const normalized = Math.abs(hash % 900000);
+  return normalized + 100000;
+}
+
+function nextSeed(current: number): number {
+  const normalizedCurrent = Number.isFinite(current) ? Math.max(100000, Math.floor(current)) : 100000;
+  return ((normalizedCurrent - 100000 + 7919) % 900000) + 100000;
+}
 
 /* ─── Pollinations URL Builder ─── */
 function buildPollinationsUrl(
@@ -26,15 +41,15 @@ export default function ImageCreator({ novelId, onInsertImage }: ImageCreatorPro
   const novel = userNovels.find(n => n.id === novelId);
   const novelChars = characters.filter(c => c.novelId === novelId);
   const novelImages = characterImages.filter(img => img.novelId === novelId);
+  const initialSeed = novel?.visualDNA?.seed ?? deriveSeedFromNovelId(novelId);
 
   const [dnaDesc, setDnaDesc] = useState(novel?.visualDNA?.physicalDescription || '');
-  const [dnaSeed, setDnaSeed] = useState(novel?.visualDNA?.seed || Math.floor(Math.random() * 999999) + 100000);
+  const [dnaSeed, setDnaSeed] = useState(initialSeed);
   const [selectedCharId, setSelectedCharId] = useState('');
   const [scenePrompt, setScenePrompt] = useState('');
   const [generatedUrl, setGeneratedUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showDnaEditor, setShowDnaEditor] = useState(!novel?.visualDNA?.physicalDescription);
-  const [dragUrl, setDragUrl] = useState('');
 
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -83,11 +98,10 @@ export default function ImageCreator({ novelId, onInsertImage }: ImageCreatorPro
   const handleDragStart = (e: React.DragEvent, url: string) => {
     e.dataTransfer.setData('text/plain', url);
     e.dataTransfer.setData('application/x-image-url', url);
-    setDragUrl(url);
   };
 
   const handleRegenerate = () => {
-    const newSeed = Math.floor(Math.random() * 999999) + 100000;
+    const newSeed = nextSeed(dnaSeed);
     setDnaSeed(newSeed);
     if (novel?.visualDNA) {
       setVisualDNA(novelId, { ...novel.visualDNA, seed: newSeed });
@@ -129,7 +143,7 @@ export default function ImageCreator({ novelId, onInsertImage }: ImageCreatorPro
                   className="flex-1 px-2 py-1.5 bg-bg-secondary rounded-lg text-xs text-text-primary border border-divider focus:border-accent focus:outline-none"
                 />
                 <button
-                  onClick={() => setDnaSeed(Math.floor(Math.random() * 999999) + 100000)}
+                  onClick={() => setDnaSeed((current) => nextSeed(current))}
                   className="px-2 py-1.5 rounded-lg bg-bg-secondary border border-divider hover:border-accent text-text-secondary hover:text-accent transition-colors"
                   title="Randomize seed"
                 >

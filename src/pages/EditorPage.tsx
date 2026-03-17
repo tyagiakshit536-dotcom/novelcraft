@@ -38,7 +38,12 @@ export default function EditorPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const store = useStore();
-  const locationNovelId = (location.state as { novelId?: string })?.novelId;
+  const locationNovelId = (() => {
+    const state = location.state;
+    if (!state || typeof state !== 'object' || !('novelId' in state)) return undefined;
+    const value = (state as { novelId?: unknown }).novelId;
+    return typeof value === 'string' ? value : undefined;
+  })();
 
   const [focusMode, setFocusMode] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);

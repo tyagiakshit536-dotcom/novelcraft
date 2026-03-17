@@ -7,6 +7,7 @@ import {
   readingProgressService, readingListService, reviewService, commentService,
   characterService, worldEntryService, notificationService,
 } from './lib/services';
+import { chapterBelongsToNovel, isDatabaseNovelId } from './lib/storeGuards';
 
 // ─── Sample Data Generator (fallback for discovery when DB has no published novels) ───
 function generateSampleNovels(): Novel[] {
@@ -119,6 +120,22 @@ const sampleNovels = generateSampleNovels();
 
 // Debounce map for chapter content saves
 const chapterSaveTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const userDataLoadInflight = new Map<string, Promise<void>>();
+
+const PROFILE_RETRY_DELAYS_MS = [500, 1000, 2000];
+
+async function waitForProfileWithRetry(userId: string) {
+  let profile = await profileService.getProfile(userId);
+  if (profile) return profile;
+
+  for (const delayMs of PROFILE_RETRY_DELAYS_MS) {
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    profile = await profileService.getProfile(userId);
+    if (profile) return profile;
+  }
+
+  return null;
+}
 
 // Helper: generate a temporary UUID for optimistic updates
 function tempId(): string {
@@ -378,58 +395,71 @@ export const useStore = create<AppState>()(
       },
 
       loadUserData: async (userId: string) => {
-        try {
-          const [userNovels, publishedNovels, readingProgress, readingList, reviews, comments, characters, worldEntries, notifications] = await Promise.all([
-            novelService.getUserNovels(userId),
-            novelService.getPublishedNovels(),
-            readingProgressService.getAll(userId),
-            readingListService.getAll(userId),
-            reviewService.getAll(),
-            commentService.getAll(),
-            characterService.getByUser(userId),
-            worldEntryService.getByUser(userId),
-            notificationService.getAll(userId),
-          ]);
-
-          // Merge published novels with samples for a richer discovery feed
-          const dbNovelIds = new Set(publishedNovels.map(n => n.id));
-          const filteredSamples = sampleNovels.filter(s => !dbNovelIds.has(s.id));
-          const discoveryNovels = [...publishedNovels, ...filteredSamples];
-
-          // Merge server novels with local state to prevent stale loads from wiping
-          // out newly created or recently edited drafts.
-          set((s) => {
-            const serverIds = new Set(userNovels.map(n => n.id));
-            const localById = new Map(s.userNovels.map(n => [n.id, n]));
-
-            const mergedFromServer = userNovels.map((serverNovel) => {
-              const localNovel = localById.get(serverNovel.id);
-              if (!localNovel) return serverNovel;
-              const localUpdatedAt = Date.parse(localNovel.updatedAt || '');
-              const serverUpdatedAt = Date.parse(serverNovel.updatedAt || '');
-              return Number.isFinite(localUpdatedAt) && Number.isFinite(serverUpdatedAt) && localUpdatedAt > serverUpdatedAt
-                ? localNovel
-                : serverNovel;
-            });
-
-            const localOnlyNovels = s.userNovels.filter(n => !serverIds.has(n.id) && n.authorId === userId);
-            const mergedUserNovels = [...mergedFromServer, ...localOnlyNovels];
-
-            return {
-              userNovels: mergedUserNovels,
-              novels: discoveryNovels,
-              readingProgress,
-              readingList,
-              reviews,
-              comments,
-              characters,
-              worldEntries,
-              notifications,
-            };
-          });
-        } catch (e) {
-          console.error('Failed to load user data:', e);
+        const existing = userDataLoadInflight.get(userId);
+        if (existing) {
+          await existing;
+          return;
         }
+
+        const loadPromise = (async () => {
+          try {
+            const [userNovels, publishedNovels, readingProgress, readingList, reviews, comments, characters, worldEntries, notifications] = await Promise.all([
+              novelService.getUserNovels(userId),
+              novelService.getPublishedNovels(),
+              readingProgressService.getAll(userId),
+              readingListService.getAll(userId),
+              reviewService.getAll(),
+              commentService.getAll(),
+              characterService.getByUser(userId),
+              worldEntryService.getByUser(userId),
+              notificationService.getAll(userId),
+            ]);
+
+            // Merge published novels with samples for a richer discovery feed
+            const dbNovelIds = new Set(publishedNovels.map(n => n.id));
+            const filteredSamples = sampleNovels.filter(s => !dbNovelIds.has(s.id));
+            const discoveryNovels = [...publishedNovels, ...filteredSamples];
+
+            // Merge server novels with local state to prevent stale loads from wiping
+            // out newly created or recently edited drafts.
+            set((s) => {
+              const serverIds = new Set(userNovels.map(n => n.id));
+              const localById = new Map(s.userNovels.map(n => [n.id, n]));
+
+              const mergedFromServer = userNovels.map((serverNovel) => {
+                const localNovel = localById.get(serverNovel.id);
+                if (!localNovel) return serverNovel;
+                const localUpdatedAt = Date.parse(localNovel.updatedAt || '');
+                const serverUpdatedAt = Date.parse(serverNovel.updatedAt || '');
+                return Number.isFinite(localUpdatedAt) && Number.isFinite(serverUpdatedAt) && localUpdatedAt > serverUpdatedAt
+                  ? localNovel
+                  : serverNovel;
+              });
+
+              const localOnlyNovels = s.userNovels.filter(n => !serverIds.has(n.id) && n.authorId === userId);
+              const mergedUserNovels = [...mergedFromServer, ...localOnlyNovels];
+
+              return {
+                userNovels: mergedUserNovels,
+                novels: discoveryNovels,
+                readingProgress,
+                readingList,
+                reviews,
+                comments,
+                characters,
+                worldEntries,
+                notifications,
+              };
+            });
+          } catch (e) {
+            console.error('Failed to load user data:', e);
+          } finally {
+            userDataLoadInflight.delete(userId);
+          }
+        })();
+
+        userDataLoadInflight.set(userId, loadPromise);
+        await loadPromise;
       },
 
       login: async (email: string, password: string) => {
@@ -449,7 +479,7 @@ export const useStore = create<AppState>()(
           readerFont: settings?.readerFont ?? 'Lora',
           readerFontSize: settings?.readerFontSize ?? 18,
         });
-        get().loadUserData(session.user.id);
+        await get().loadUserData(session.user.id);
       },
 
       signup: async (email: string, password: string, username: string, displayName: string) => {
@@ -457,15 +487,10 @@ export const useStore = create<AppState>()(
         if (!session?.user) {
           throw new Error('CONFIRM_EMAIL');
         }
-        // Wait briefly for the DB trigger to create the profile
-        let profile = await profileService.getProfile(session.user.id);
-        if (!profile) {
-          await new Promise(r => setTimeout(r, 1500));
-          profile = await profileService.getProfile(session.user.id);
-        }
+        const profile = await waitForProfileWithRetry(session.user.id);
         if (!profile) throw new Error('Profile creation failed. Please try logging in.');
         set({ isAuthenticated: true, currentUser: profile });
-        get().loadUserData(session.user.id);
+        await get().loadUserData(session.user.id);
       },
 
       logout: async () => {
@@ -476,6 +501,7 @@ export const useStore = create<AppState>()(
           reviews: [], comments: [], characters: [], worldEntries: [],
           notifications: [], novels: sampleNovels, upcomingNovelIds: [],
         });
+        localStorage.removeItem('novelcraft-storage');
       },
 
       completeOnboarding: () => {
@@ -638,19 +664,23 @@ export const useStore = create<AppState>()(
       // ─── Volume CRUD ───
 
       addVolume: (novelId, title) => {
+        const targetNovel = get().userNovels.find(n => n.id === novelId);
+        if (!targetNovel) {
+          return { id: tempId(), novelId, title, bannerImageUrl: '', orderIndex: 0, createdAt: new Date().toISOString(), chapters: [] };
+        }
+
+        const nextOrderIndex = targetNovel.volumes.length;
         const id = tempId();
-        const vol: Volume = { id, novelId, title, bannerImageUrl: '', orderIndex: 0, createdAt: new Date().toISOString(), chapters: [] };
+        const vol: Volume = { id, novelId, title, bannerImageUrl: '', orderIndex: nextOrderIndex, createdAt: new Date().toISOString(), chapters: [] };
         set(s => ({
           userNovels: s.userNovels.map(n => {
             if (n.id !== novelId) return n;
-            const newVol = { ...vol, orderIndex: n.volumes.length };
-            return { ...n, volumes: [...n.volumes, newVol] };
+            return { ...n, volumes: [...n.volumes, vol] };
           }),
         }));
 
-        if (!novelId.startsWith('temp-') && !novelId.startsWith('novel-')) {
-          const orderIndex = get().userNovels.find(n => n.id === novelId)?.volumes.length ?? 0;
-          volumeService.addVolume(novelId, title, orderIndex).then(realVol => {
+        if (isDatabaseNovelId(novelId)) {
+          volumeService.addVolume(novelId, title, nextOrderIndex).then(realVol => {
             set(s => ({
               userNovels: s.userNovels.map(n => n.id !== novelId ? n : {
                 ...n, volumes: n.volumes.map(v => v.id === id ? { ...realVol, chapters: v.chapters } : v),
@@ -686,25 +716,30 @@ export const useStore = create<AppState>()(
       // ─── Chapter CRUD ───
 
       addChapter: (novelId, volumeId, title) => {
+        const targetNovel = get().userNovels.find(n => n.id === novelId);
+        const targetVolume = targetNovel?.volumes.find(v => v.id === volumeId);
+        if (!targetNovel || !targetVolume) {
+          return { id: tempId(), volumeId, novelId, title, content: '', bannerImageUrl: '', orderIndex: 0, wordCount: 0, status: 'draft', publishedAt: '', readCount: 0 };
+        }
+
+        const nextOrderIndex = targetVolume.chapters.length;
         const id = tempId();
-        const ch: Chapter = { id, volumeId, novelId, title, content: '', bannerImageUrl: '', orderIndex: 0, wordCount: 0, status: 'draft', publishedAt: '', readCount: 0 };
+        const ch: Chapter = { id, volumeId, novelId, title, content: '', bannerImageUrl: '', orderIndex: nextOrderIndex, wordCount: 0, status: 'draft', publishedAt: '', readCount: 0 };
         set(s => ({
           userNovels: s.userNovels.map(n => {
             if (n.id !== novelId) return n;
             return {
               ...n, volumes: n.volumes.map(v => {
                 if (v.id !== volumeId) return v;
-                const newCh = { ...ch, orderIndex: v.chapters.length };
-                return { ...v, chapters: [...v.chapters, newCh] };
+                return { ...v, chapters: [...v.chapters, ch] };
               }),
             };
           }),
           activeChapterId: id,
         }));
 
-        if (!novelId.startsWith('temp-') && !novelId.startsWith('novel-') && !volumeId.startsWith('temp-')) {
-          const orderIndex = get().userNovels.find(n => n.id === novelId)?.volumes.find(v => v.id === volumeId)?.chapters.length ?? 0;
-          chapterService.addChapter(novelId, volumeId, title, orderIndex).then(realCh => {
+        if (isDatabaseNovelId(novelId) && !volumeId.startsWith('temp-')) {
+          chapterService.addChapter(novelId, volumeId, title, nextOrderIndex).then(realCh => {
             set(s => ({
               userNovels: s.userNovels.map(n => n.id !== novelId ? n : {
                 ...n, volumes: n.volumes.map(v => v.id !== volumeId ? v : {
@@ -846,6 +881,11 @@ export const useStore = create<AppState>()(
 
       updateReadingProgress: (novelId, chapterId, scrollPosition) => {
         set(s => {
+          const novel = [...s.userNovels, ...s.novels].find(n => n.id === novelId);
+          if (!chapterBelongsToNovel(novel, chapterId)) {
+            return {};
+          }
+
           const userId = s.currentUser?.id || '';
           const existing = s.readingProgress.find(p => p.userId === userId && p.novelId === novelId);
           if (existing) {
@@ -853,8 +893,14 @@ export const useStore = create<AppState>()(
           }
           return { readingProgress: [...s.readingProgress, { id: tempId(), userId, novelId, chapterId, scrollPosition, lastReadAt: new Date().toISOString() }] };
         });
+
+        const novel = [...get().userNovels, ...get().novels].find(n => n.id === novelId);
+        if (!chapterBelongsToNovel(novel, chapterId)) {
+          return;
+        }
+
         const userId = get().currentUser?.id;
-        if (userId && !novelId.startsWith('novel-')) {
+        if (userId && isDatabaseNovelId(novelId)) {
           readingProgressService.upsert(userId, novelId, chapterId, scrollPosition).catch(console.error);
         }
       },
@@ -864,7 +910,7 @@ export const useStore = create<AppState>()(
         if (s.readingList.find(r => r.novelId === novelId)) return;
         const userId = s.currentUser?.id || '';
         set({ readingList: [...s.readingList, { id: tempId(), userId, novelId, shelfName, addedAt: new Date().toISOString(), progressStatus: 'to-read' }] });
-        if (userId && !novelId.startsWith('novel-')) {
+        if (userId && isDatabaseNovelId(novelId)) {
           readingListService.add(userId, novelId, shelfName).catch(console.error);
         }
       },
@@ -872,7 +918,7 @@ export const useStore = create<AppState>()(
       removeFromReadingList: (novelId) => {
         set(s => ({ readingList: s.readingList.filter(r => r.novelId !== novelId) }));
         const userId = get().currentUser?.id;
-        if (userId && !novelId.startsWith('novel-')) {
+        if (userId && isDatabaseNovelId(novelId)) {
           readingListService.remove(userId, novelId).catch(console.error);
         }
       },
@@ -884,7 +930,7 @@ export const useStore = create<AppState>()(
         set(s => ({
           reviews: [...s.reviews, { id, userId: user.id, userName: user.displayName, userAvatar: user.avatarUrl, novelId, rating, reviewText: text, createdAt: new Date().toISOString(), helpfulCount: 0 }],
         }));
-        if (!novelId.startsWith('novel-')) {
+        if (isDatabaseNovelId(novelId)) {
           reviewService.add(user.id, user.displayName, user.avatarUrl, novelId, rating, text).catch(console.error);
         }
       },
@@ -896,7 +942,7 @@ export const useStore = create<AppState>()(
         set(s => ({
           comments: [...s.comments, { id, userId: user.id, userName: user.displayName, userAvatar: user.avatarUrl, chapterId, content, createdAt: new Date().toISOString(), parentCommentId: parentId, isPinned: false }],
         }));
-        if (!chapterId.startsWith('ch-')) {
+        if (!chapterId.startsWith('temp-')) {
           commentService.add(user.id, user.displayName, user.avatarUrl, chapterId, content, parentId).catch(console.error);
         }
       },

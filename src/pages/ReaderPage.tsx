@@ -18,6 +18,94 @@ const bgOptions = [
   { key: 'navy', label: 'Navy', class: 'reader-bg-navy', color: '#301616' },
 ];
 
+function sanitizeUrl(rawValue: string): string | null {
+  const value = rawValue.trim();
+  if (!value) return null;
+
+  const compact = value
+    .split('')
+    .filter((ch) => {
+      const code = ch.charCodeAt(0);
+      const isControl = code <= 31 || code === 127;
+      return !isControl && !/\s/.test(ch);
+    })
+    .join('')
+    .toLowerCase();
+  if (compact.startsWith('javascript:') || compact.startsWith('vbscript:')) {
+    return null;
+  }
+
+  if (compact.startsWith('data:')) {
+    return /^data:image\/(png|jpe?g|gif|webp|bmp|svg\+xml);/i.test(compact) ? value : null;
+  }
+
+  if (
+    compact.startsWith('http:')
+    || compact.startsWith('https:')
+    || compact.startsWith('mailto:')
+    || compact.startsWith('tel:')
+    || compact.startsWith('blob:')
+    || compact.startsWith('/')
+    || compact.startsWith('#')
+    || compact.startsWith('./')
+    || compact.startsWith('../')
+  ) {
+    return value;
+  }
+
+  return null;
+}
+
+function sanitizeChapterHtml(rawHtml: string): string {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(rawHtml, 'text/html');
+
+  doc.querySelectorAll('script, style, link, meta, iframe, object, embed, svg, math, form, input, button, textarea, select, option').forEach(node => node.remove());
+
+  const allElements = doc.body.querySelectorAll('*');
+  allElements.forEach((element) => {
+    const attrs = Array.from(element.attributes);
+    for (const attr of attrs) {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.trim();
+
+      if (name.startsWith('on')) {
+        element.removeAttribute(attr.name);
+        continue;
+      }
+
+      if (name === 'href' || name === 'src' || name === 'xlink:href' || name === 'formaction') {
+        const safe = sanitizeUrl(value);
+        if (!safe) element.removeAttribute(attr.name);
+        else element.setAttribute(attr.name, safe);
+        continue;
+      }
+
+      if (name === 'srcset') {
+        const sanitizedCandidates = value
+          .split(',')
+          .map(candidate => candidate.trim())
+          .map((candidate) => {
+            if (!candidate) return '';
+            const [candidateUrl, descriptor] = candidate.split(/\s+/, 2);
+            const safe = sanitizeUrl(candidateUrl);
+            if (!safe) return '';
+            return descriptor ? `${safe} ${descriptor}` : safe;
+          })
+          .filter(Boolean);
+
+        if (!sanitizedCandidates.length) {
+          element.removeAttribute(attr.name);
+        } else {
+          element.setAttribute(attr.name, sanitizedCandidates.join(', '));
+        }
+      }
+    }
+  });
+
+  return doc.body.innerHTML;
+}
+
 /* ─── Volume Tree (collapsible sidebar) ─── */
 function VolumeNode({ volume, activeChapterId, onSelectChapter }: {
   volume: { id: string; title: string; chapters: { id: string; title: string; wordCount: number }[] };
@@ -77,6 +165,7 @@ export default function ReaderPage() {
   const nextChapter = currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
   const readTime = currentChapter ? Math.max(1, Math.ceil(currentChapter.wordCount / 250)) : 0;
   const bgOption = bgOptions.find(b => b.key === store.readerBackground) || bgOptions[0];
+  const safeChapterHtml = sanitizeChapterHtml(currentChapter?.content || '<p style="opacity:0.5;text-align:center;">This chapter is empty.</p>');
 
   useEffect(() => {
     if (novelId && chapterId) {
@@ -88,7 +177,8 @@ export default function ReaderPage() {
     const handleScroll = () => {
       if (!contentRef.current) return;
       const el = contentRef.current;
-      const scrolled = el.scrollTop / (el.scrollHeight - el.clientHeight);
+      const totalScrollable = el.scrollHeight - el.clientHeight;
+      const scrolled = totalScrollable <= 0 ? 1 : el.scrollTop / totalScrollable;
       setProgress(Math.min(1, Math.max(0, scrolled)));
     };
     const el = contentRef.current;
@@ -250,7 +340,7 @@ export default function ReaderPage() {
             <div
               className={`leading-[1.9] reader-content max-w-none ${isPrimitive ? '' : 'prose prose-invert'}`}
               style={{ lineHeight: '1.9' }}
-              dangerouslySetInnerHTML={{ __html: currentChapter.content || '<p style="opacity:0.5;text-align:center;">This chapter is empty.</p>' }}
+              dangerouslySetInnerHTML={{ __html: safeChapterHtml }}
             />
 
             {/* End of Chapter */}
